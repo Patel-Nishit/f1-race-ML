@@ -7,3 +7,4 @@ rich
 fastapi
 uvicorn[standard]
 pytest
+httpx

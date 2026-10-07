@@ -7,7 +7,7 @@ Arcade desktop app and a Next.js web app streamed over WebSockets.
 
 ![Desktop viewer](docs/images/desktop-safety-car.png)
 
-**Status:** data pipeline and desktop viewer done (phases 1–3 of 8). See [docs/PROGRESS.md](docs/PROGRESS.md).
+**Status:** data pipeline, desktop viewer and streaming API done (phases 1–4 of 8). See [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ## Quick start
 
@@ -17,6 +17,7 @@ pip install -r requirements.txt
 python main.py list-rounds --year 2024
 python main.py prepare --year 2024 --round 2
 python main.py desktop --year 2024 --round 2
+python main.py serve        # API + WebSocket on :8000, docs at /docs
 python -m pytest
 ```
 

@@ -9,13 +9,15 @@ Arrays shaped (frames, drivers) use the driver order in meta["drivers"].
 """
 
 import json
+import os
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
 
-DATA_DIR = Path("computed_data")
+# Where prepared races live. Override with the F1_DATA_DIR environment variable.
+DATA_DIR = Path(os.environ.get("F1_DATA_DIR", "computed_data"))
 
 # Per-driver arrays (frames, drivers) and their on-disk dtypes. Smaller dtypes
 # for small integers keep files and memory compact.
@@ -57,6 +59,16 @@ def race_key(year: int, round_number: int, session_type: str = "R") -> str:
 def race_paths(year, round_number, session_type="R", data_dir=None):
     base = Path(data_dir or DATA_DIR) / race_key(year, round_number, session_type)
     return base.with_suffix(".npz"), base.with_suffix(".json")
+
+
+def list_prepared(data_dir=None) -> list:
+    """[(year, round, session), ...] for every race in the data folder."""
+    races = []
+    for npz in sorted(Path(data_dir or DATA_DIR).glob("*_*_*.npz")):
+        year, round_number, session_type = npz.stem.split("_")
+        if npz.with_suffix(".json").exists():
+            races.append((int(year), int(round_number), session_type))
+    return races
 
 
 def is_prepared(year, round_number, session_type="R", data_dir=None) -> bool:

@@ -19,7 +19,14 @@
   input. Profiled 22 → 26 fps (41 with `--no-antialias`) on GPU-less WSL.
   *Learned:* game loop, interpolation, coordinate transforms, hitboxes,
   draw calls, batching, sprite lists, profiling.
-- [ ] **Phase 4 — FastAPI backend + WebSocket stream.**
+- [x] **Phase 4 — FastAPI backend + WebSocket stream.** `python main.py serve`.
+  REST (races, calendar, status, prepare, meta, telemetry) + `/ws/replay`.
+  Background preparation in a spawned process with progress (Australia 2024
+  prepared via the API in 167 s). Compact frames (1.5 KB, 10/s at any
+  speed), acks for commands (1.9 ms seek), silent when paused. 59 tests.
+  *Learned:* HTTP/REST, status codes, FastAPI validation, async vs threads,
+  background jobs, processes & queues, CORS, WebSockets, protocol design,
+  backpressure.
 - [ ] **Phase 5 — Next.js skeleton + track canvas.**
 - [ ] **Phase 6 — Web HUD (leaderboard, clock, controls, legend, OUT).**
 - [ ] **Phase 7 — Safety car, Insights menu, Telemetry panel.**

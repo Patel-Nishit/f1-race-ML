@@ -4,6 +4,7 @@ Usage:
     python main.py list-rounds --year 2024
     python main.py prepare --year 2024 --round 1 [--refresh-data]
     python main.py desktop --year 2024 --round 2 [--start 600 --speed 4]
+    python main.py serve [--port 8000 --reload]
 """
 
 import argparse
@@ -53,6 +54,13 @@ def cmd_desktop(args):
         screenshot=args.screenshot, show_legend=args.legend, antialias=not args.no_antialias)
 
 
+def cmd_serve(args):
+    import uvicorn
+
+    console.print(f"[bold]API on http://{args.host}:{args.port}[/bold]  (docs: /docs)")
+    uvicorn.run("backend.app:app", host=args.host, port=args.port, reload=args.reload)
+
+
 def build_parser():
     parser = argparse.ArgumentParser(description="F1 Race Replay")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -80,6 +88,12 @@ def build_parser():
                    help="Faster on machines without a GPU (e.g. WSL), slightly jaggier edges")
     p.add_argument("--screenshot", help="Save one frame to this PNG and exit")
     p.set_defaults(func=cmd_desktop)
+
+    p = sub.add_parser("serve", help="Run the web API (FastAPI + WebSocket)")
+    p.add_argument("--host", default="127.0.0.1")
+    p.add_argument("--port", type=int, default=8000)
+    p.add_argument("--reload", action="store_true", help="Restart on code changes")
+    p.set_defaults(func=cmd_serve)
     return parser
 
 

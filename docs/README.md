@@ -19,8 +19,8 @@ https://claude.ai/code/artifact/45446912-d41f-4b9f-b819-757b967892df
 | 05 | [Data management: caching, columnar storage](05-data-management.md) | 2 |
 | 06 | [Safety car & race status modelling](06-safety-car-and-race-status.md) | 2 |
 | 07 | [Arcade desktop viewer](07-arcade-desktop.md) | 3 |
-| 08 | Backend with FastAPI | 4 |
-| 09 | Real-time data with WebSockets | 4 |
+| 08 | [Backend with FastAPI](08-backend-fastapi.md) | 4 |
+| 09 | [Real-time data with WebSockets](09-real-time-websockets.md) | 4 |
 | 10 | Next.js, React & TypeScript | 5 |
 | 11 | Canvas rendering & animation | 5–7 |
 | 12 | UI features | 6–7 |
@@ -39,6 +39,7 @@ python main.py list-rounds --year 2024
 python main.py prepare --year 2024 --round 1   # Bahrain: no SC, no retirements
 python main.py prepare --year 2024 --round 2   # Saudi Arabia: safety car + 2 OUT
 python main.py desktop --year 2024 --round 2   # open the desktop replay
+python main.py serve                           # API on :8000, docs at /docs
 python -m pytest                               # run the tests
 ```
 
