@@ -19,19 +19,27 @@ def cmd_list_rounds(args):
 
 
 def cmd_prepare(args):
-    from src.f1_data import enable_cache, load_session, get_race_telemetry
+    from src.f1_data import prepare_race
+    from src.race_store import race_paths
 
-    enable_cache()
     start = time.perf_counter()
-    console.print(f"[bold]Loading {args.year} round {args.round} ({args.session})...[/bold]")
-    session = load_session(args.year, args.round, args.session)
-    data = get_race_telemetry(session, session_type=args.session)
+    console.print(f"[bold]Preparing {args.year} round {args.round} ({args.session})...[/bold]")
+    race = prepare_race(args.year, args.round, args.session, refresh=args.refresh_data)
     elapsed = time.perf_counter() - start
+
+    meta = race.meta
+    npz_path, _ = race_paths(args.year, args.round, args.session)
+    size_mb = npz_path.stat().st_size / 1e6
+    memory_mb = sum(a.nbytes for a in race.arrays.values()) / 1e6
+    sc_frames = int((race.arrays["sc_state"] > 0).sum())
     console.print(
-        f"[green]Done in {elapsed:.1f}s[/green]: {len(data['frames'])} frames, "
-        f"{data['total_laps']} laps, {len(data['driver_colors'])} drivers, "
-        f"{len(data['track_statuses'])} track status changes"
+        f"[green]Done in {elapsed:.1f}s[/green] - {meta['event_name']}: "
+        f"{race.n_frames} frames ({meta['fps']} Hz), {meta['total_laps']} laps, "
+        f"{len(meta['drivers'])} drivers"
     )
+    console.print(f"File {size_mb:.1f} MB on disk, {memory_mb:.1f} MB in memory")
+    console.print(f"Retired (OUT): {meta['retirements'] or 'none'}")
+    console.print(f"Safety car on screen for {sc_frames / meta['fps']:.0f}s")
 
 
 def build_parser():
@@ -46,8 +54,7 @@ def build_parser():
     p.add_argument("--year", type=int, required=True)
     p.add_argument("--round", type=int, required=True)
     p.add_argument("--session", default="R", choices=["R", "S"])
-    # f1_data reads this flag straight from sys.argv
-    p.add_argument("--refresh-data", action="store_true", help="Ignore computed cache")
+    p.add_argument("--refresh-data", action="store_true", help="Recompute even if already prepared")
     p.set_defaults(func=cmd_prepare)
     return parser
 

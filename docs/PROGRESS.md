@@ -4,8 +4,14 @@
   `src/lib/time.py`, package `__init__` files, `main.py` CLI (`list-rounds`,
   `prepare`), updated `requirements.txt` and `.gitignore`.
   *Learned:* venvs, packages & imports, argparse, FastF1 basics, caching.
-- [ ] **Phase 2 — Data core refactor.** Columnar 10 Hz `.npz`, track outline,
-  retirements, safety car path, pytest.
+- [x] **Phase 2 — Data core refactor.** `prepare_race()` pipeline; new modules
+  `transform.py`, `track.py`, `race_status.py`, `safety_car.py`,
+  `race_store.py`; 29 pytest tests. Bahrain file 322 MB → 20.2 MB; start and
+  finish order verified against grid and official results; Saudi 2024 safety
+  car and OUT drivers verified.
+  *Learned:* numpy vectorisation & broadcasting, resampling, ETL,
+  multiprocessing, columnar storage, caching layers, state machines, easing,
+  testing with synthetic data, validating against reality.
 - [ ] **Phase 3 — Arcade desktop viewer.**
 - [ ] **Phase 4 — FastAPI backend + WebSocket stream.**
 - [ ] **Phase 5 — Next.js skeleton + track canvas.**
