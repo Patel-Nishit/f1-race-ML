@@ -181,7 +181,11 @@ def prepare_race(year, round_number, session_type='R', refresh=False, progress=N
 
     report(f"Extracting telemetry for {len(drivers)} drivers", 0.3)
     driver_args = [(num, session, driver_codes[num]) for num in drivers]
-    with Pool(processes=min(cpu_count(), len(drivers))) as pool:
+    # F1_WORKERS caps the parallel processes: each one holds a copy of the
+    # session, so small machines (e.g. a cloud build box) run out of memory
+    # with too many.
+    workers = min(cpu_count(), len(drivers), int(os.environ.get("F1_WORKERS", cpu_count())))
+    with Pool(processes=workers) as pool:
         results = [r for r in pool.map(_process_single_driver, driver_args) if r is not None]
     if not results:
         raise ValueError("No valid telemetry data found for any driver")

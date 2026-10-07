@@ -27,13 +27,21 @@ app = FastAPI(
 )
 
 # The Next.js dev server runs on another origin (port 3000), so the browser
-# needs explicit permission (CORS) to call this API.
+# needs explicit permission (CORS) to call this API. In production, set
+# F1_CORS_ORIGINS to your site (https://your-app.vercel.app) and optionally
+# F1_CORS_ORIGIN_REGEX for preview deployments (https://.*\.vercel\.app).
 app.add_middleware(
     CORSMiddleware,
     allow_origins=os.environ.get("F1_CORS_ORIGINS", "http://localhost:3000").split(","),
+    allow_origin_regex=os.environ.get("F1_CORS_ORIGIN_REGEX") or None,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Preparing a race costs minutes of CPU and hundreds of MB of downloads. On a
+# public deployment, anyone could trigger that, so it can be switched off
+# (F1_ALLOW_PREPARE=false) and the server only replays races shipped with it.
+ALLOW_PREPARE = os.environ.get("F1_ALLOW_PREPARE", "true").lower() not in ("0", "false", "no")
 
 jobs = PrepareJobs()
 
@@ -56,7 +64,7 @@ def _read_meta(year, round_number, session) -> dict:
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "prepare_enabled": ALLOW_PREPARE}
 
 
 @app.get("/api/races")
@@ -100,6 +108,8 @@ def race_status(year: int = Year, round_number: int = Round, session: SessionTyp
 @app.post("/api/races/{year}/{round_number}/prepare", status_code=202)
 def prepare(year: int = Year, round_number: int = Round, session: SessionType = Session):
     """Start preparing a race in the background. Poll /status for progress."""
+    if not ALLOW_PREPARE:
+        raise HTTPException(403, "Preparing new races is disabled on this server.")
     return jobs.start(year, round_number, session)
 
 

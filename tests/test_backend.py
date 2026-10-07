@@ -18,7 +18,28 @@ def client(data_dir):
 # --- REST ------------------------------------------------------------------
 
 def test_health(client):
-    assert client.get("/api/health").json() == {"status": "ok"}
+    assert client.get("/api/health").json() == {"status": "ok", "prepare_enabled": True}
+
+
+def test_prepare_can_be_disabled(client, monkeypatch):
+    import backend.app
+    monkeypatch.setattr(backend.app, "ALLOW_PREPARE", False)
+    r = client.post("/api/races/2030/2/prepare")
+    assert r.status_code == 403
+    assert client.get("/api/health").json()["prepare_enabled"] is False
+
+
+def test_cors_regex_for_preview_deployments(monkeypatch):
+    # middleware is configured at import time, so build a fresh app
+    import importlib
+    import backend.app
+    monkeypatch.setenv("F1_CORS_ORIGIN_REGEX", r"https://.*\.vercel\.app")
+    app = importlib.reload(backend.app).app
+    r = TestClient(app).options("/api/health", headers={
+        "Origin": "https://f1-replay-git-main-me.vercel.app", "Access-Control-Request-Method": "GET"})
+    assert r.headers["access-control-allow-origin"] == "https://f1-replay-git-main-me.vercel.app"
+    monkeypatch.delenv("F1_CORS_ORIGIN_REGEX")
+    importlib.reload(backend.app)
 
 
 def test_lists_prepared_races(client):

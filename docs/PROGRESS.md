@@ -52,7 +52,15 @@
   *Learned:* chart design rules, palette validation & secondary encoding,
   WCAG contrast, inverse interpolation, abort controllers, derived state,
   canvas alpha.
-- [ ] **Phase 8 — Polish, deploy, resume.**
+- [x] **Phase 8 — Polish, deploy, resume.** Deployment-ready API (`Dockerfile`
+  that bakes in demo races, `render.yaml`, `requirements-api.txt`, `PORT`/
+  `HOST`, CORS regex, prepare switch); web shows "Not in this demo";
+  packaged Playwright suite in `e2e/` (15 tests, passing against a
+  production build); GitHub Actions CI; README with demo GIF; deployment
+  guide, resume bullets and interview prep (chapter 14). Not verified here:
+  `docker build` (no Docker in this environment).
+  *Learned:* serverless vs long-running servers, containers, build-time vs
+  runtime config, CORS in production, securing expensive endpoints, CI.
 
 ## Open questions
 

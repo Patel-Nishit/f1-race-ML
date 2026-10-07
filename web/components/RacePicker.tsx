@@ -17,6 +17,12 @@ export function RacePicker() {
   const [events, setEvents] = useState<SeasonEvent[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<Record<number, PrepareStatus>>({});
+  // A public demo server can switch preparation off (F1_ALLOW_PREPARE=false).
+  const [canPrepare, setCanPrepare] = useState(true);
+
+  useEffect(() => {
+    api.health().then((h) => setCanPrepare(h.prepare_enabled)).catch(() => {});
+  }, []);
 
   // Load the season calendar whenever the year changes.
   useEffect(() => {
@@ -83,6 +89,13 @@ export function RacePicker() {
         ))}
       </div>
 
+      {!canPrepare && (
+        <p className="mb-6 rounded border border-line bg-panel px-4 py-3 text-sm text-dim">
+          This is a demo server: races marked &ldquo;Watch replay&rdquo; are ready. To replay any race since 2018,
+          run the project locally (see the README).
+        </p>
+      )}
+
       {error && (
         <p className="mb-6 rounded border border-f1/50 bg-f1/10 px-4 py-3 text-sm" role="alert">{error}</p>
       )}
@@ -98,6 +111,7 @@ export function RacePicker() {
               event={ev}
               status={progress[ev.round_number]}
               onPrepare={() => prepare(ev.round_number)}
+              canPrepare={canPrepare}
             />
           ))}
         </ul>
@@ -106,11 +120,12 @@ export function RacePicker() {
   );
 }
 
-function EventCard({ year, event, status, onPrepare }: {
+function EventCard({ year, event, status, onPrepare, canPrepare }: {
   year: number;
   event: SeasonEvent;
   status?: PrepareStatus;
   onPrepare: () => void;
+  canPrepare: boolean;
 }) {
   const state = status?.state ?? event.status;
   const upcoming = new Date(event.date) > new Date();
@@ -132,7 +147,10 @@ function EventCard({ year, event, status, onPrepare }: {
             Watch replay
           </Link>
         )}
-        {state === "missing" && !upcoming && (
+        {state === "missing" && !upcoming && !canPrepare && (
+          <p className="text-sm text-faint">Not in this demo</p>
+        )}
+        {state === "missing" && !upcoming && canPrepare && (
           <button onClick={onPrepare}
             className="rounded bg-panel-light px-4 py-1.5 text-sm font-semibold hover:bg-line">
             Prepare race

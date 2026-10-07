@@ -1,0 +1,13 @@
+# Keep the build context small and reproducible: the image prepares its own
+# races, and never needs the web app, tests, docs or local environments.
+venv/
+web/
+docs/
+tests/
+desktop/
+e2e/
+computed_data/
+.fastf1-cache/
+.git/
+**/__pycache__/
+*.pyc

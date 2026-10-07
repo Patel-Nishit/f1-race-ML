@@ -11,7 +11,7 @@ python -m pytest -q         # quieter
 python -m pytest tests/test_transform.py -k positions   # just some
 ```
 
-59 tests run in about four seconds, with no internet and no FastF1 download.
+67 Python tests run in a few seconds, with no internet and no FastF1 download.
 `tests/test_desktop.py` opens a real window; it skips itself when there's no
 display or the Saudi 2024 race isn't prepared.
 
@@ -65,9 +65,8 @@ Unit tests can't tell you the page actually works. We drove Chromium with
 **Playwright**: open the race picker, click "Watch replay", wait for "Live",
 check the clock advances and the canvas changes, press Pause and check
 everything freezes. Then we **killed the API server mid-replay** and checked
-the page reconnects and resumes at the same time. Playwright lives in a
-separate scratch environment, not the project's dependencies; packaging
-these as a proper `e2e/` suite is a phase 8 task.
+the page reconnects and resumes at the same time. These now live in
+`e2e/` (15 tests, see below).
 
 **Flaky tests.** A test that sometimes fails usually waits a *fixed* time
 (`sleep(0.4)`) for something that *usually* takes less. Poll for the
@@ -77,6 +76,39 @@ that change, the 16-check HUD test passed 9 runs out of 9.
 Lesson from writing them: `pgrep -f "main.py serve"` also matched our own
 shell command (its text contained that string) and killed it. Finding the
 server by its **port** (`ss -ltnp 'sport = :8000'`) was reliable.
+
+## The browser suite (`e2e/`)
+
+```bash
+python -m venv .venv-e2e && .venv-e2e/bin/pip install -r e2e/requirements.txt
+.venv-e2e/bin/python -m playwright install chromium
+python main.py serve & (cd web && npm run dev) &
+.venv-e2e/bin/python -m pytest e2e
+```
+
+- Playwright stays out of the app's dependencies (its own small venv).
+- Without running servers every test is **skipped**, not failed. Careful:
+  `pytest_collection_modifyitems` sees *every* test in the session, so the
+  hook only marks tests under `e2e/`. Our first version would have skipped
+  the unit tests too.
+- A plain `pytest` runs only `tests/` (`pytest.ini`), so the browser suite
+  never slows down normal runs.
+- Point it at a deployment with `E2E_WEB_URL` and `E2E_API_URL`.
+- It passed 15/15 on three runs against a production build talking to the
+  slim API in "public mode".
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs on every push: Python unit tests, then
+lint, typecheck, Vitest and a production build of the web app. Two things we
+checked before trusting it:
+
+- **A clean checkout:** we exported only the committed files into a fresh
+  environment and ran the Python job: 64 passed, 3 skipped (the desktop
+  window tests, which skip without a display, as they will on CI).
+- **Generated types:** `tsc` failed on the clean checkout because Next.js
+  generates the `PageProps`/`LayoutProps` route types. `npm run typecheck` now
+  runs `next typegen` first.
 
 ## What the tests cover
 
@@ -90,7 +122,8 @@ server by its **port** (`ss -ltnp 'sport = :8000'`) was reliable.
 | `test_playback.py` | Play/pause, speed limits, seeking, lap skipping |
 | `test_snapshot.py` | Interpolation, discrete fields, OUT, safety car, clamping |
 | `test_desktop.py` | Simulated key presses and clicks on the real window |
-| `test_backend.py` | REST endpoints, validation, CORS, WebSocket protocol, background jobs |
+| `test_backend.py` | REST endpoints, validation, CORS (incl. preview-URL regex), prepare switch, WebSocket protocol, background jobs |
+| `test_strategy.py` | Stints from FastF1's Stint column (same-compound stops), fallback from arrays |
 
 `tests/conftest.py` holds shared **fixtures**: `make_full_race()` builds a
 3-car, 3-lap fake race, and `data_dir` points the app at a temporary folder so

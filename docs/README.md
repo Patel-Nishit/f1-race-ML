@@ -25,9 +25,8 @@ https://claude.ai/code/artifact/45446912-d41f-4b9f-b819-757b967892df
 | 11 | [Canvas rendering & animation](11-canvas-rendering-and-animation.md) | 5–7 |
 | 12 | [UI features (the HUD)](12-ui-features.md) | 6–7 |
 | 13 | [Testing & debugging](13-testing-and-debugging.md) | all |
-| 14 | Deployment & your resume | 8 |
+| 14 | [Deployment & your resume](14-deploy-and-resume.md) | 8 |
 
-Chapters without links are written when we reach that phase.
 Track progress in [PROGRESS.md](PROGRESS.md).
 
 ## How to run (so far)

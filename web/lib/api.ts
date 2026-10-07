@@ -34,6 +34,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  health: () => request<{ status: string; prepare_enabled: boolean }>("/api/health"),
   races: () => request<PreparedRace[]>("/api/races"),
   events: (year: number) => request<SeasonEvent[]>(`/api/seasons/${year}/events`),
   status: (year: number, round: number) => request<PrepareStatus>(`/api/races/${year}/${round}/status`),

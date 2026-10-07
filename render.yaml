@@ -1,0 +1,15 @@
+# Render "Blueprint": New + > Blueprint > pick this repo.
+# Builds the Dockerfile and runs the API with WebSocket support.
+services:
+  - type: web
+    name: f1-replay-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      # your Vercel site (comma-separated if several)
+      - key: F1_CORS_ORIGINS
+        value: https://YOUR-APP.vercel.app
+      # also allow Vercel preview deployments
+      - key: F1_CORS_ORIGIN_REGEX
+        value: https://.*\.vercel\.app

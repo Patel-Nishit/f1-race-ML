@@ -1,0 +1,8 @@
+# Just what the API server needs (no Arcade/desktop, no test tools).
+# Used by the Dockerfile; for local development use requirements.txt.
+fastf1
+numpy
+pandas
+fastapi
+uvicorn[standard]
+rich
