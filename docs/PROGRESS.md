@@ -12,7 +12,13 @@
   *Learned:* numpy vectorisation & broadcasting, resampling, ETL,
   multiprocessing, columnar storage, caching layers, state machines, easing,
   testing with synthetic data, validating against reality.
-- [ ] **Phase 3 — Arcade desktop viewer.**
+- [x] **Phase 3 — Arcade desktop viewer.** `python main.py desktop`. Shared
+  `src/playback.py` + `src/snapshot.py`; track, cars, SC glow, leaderboard
+  with tyres/OUT, lap & clock, status banner, buttons + timeline, keyboard
+  shortcuts, legend, Insights menu, telemetry cards. 44 tests incl. simulated
+  input. Profiled 22 → 26 fps (41 with `--no-antialias`) on GPU-less WSL.
+  *Learned:* game loop, interpolation, coordinate transforms, hitboxes,
+  draw calls, batching, sprite lists, profiling.
 - [ ] **Phase 4 — FastAPI backend + WebSocket stream.**
 - [ ] **Phase 5 — Next.js skeleton + track canvas.**
 - [ ] **Phase 6 — Web HUD (leaderboard, clock, controls, legend, OUT).**

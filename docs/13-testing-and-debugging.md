@@ -11,7 +11,9 @@ python -m pytest -q         # quieter
 python -m pytest tests/test_transform.py -k positions   # just some
 ```
 
-29 tests run in under a second, with no internet and no FastF1 download.
+44 tests run in about a second, with no internet and no FastF1 download.
+`tests/test_desktop.py` opens a real window; it skips itself when there's no
+display or the Saudi 2024 race isn't prepared.
 
 ## How pytest works
 
@@ -57,6 +59,9 @@ Code that mixes downloading, computing and saving is very hard to test.
 | `test_race_status.py` | Which statuses count as finished; retirement times |
 | `test_safety_car.py` | Run detection, easing, wrap-around, full SC lifecycle, very short SC periods |
 | `test_race_store.py` | Save/load round trip, dtypes, OUT mask, frame lookup |
+| `test_playback.py` | Play/pause, speed limits, seeking, lap skipping |
+| `test_snapshot.py` | Interpolation, discrete fields, OUT, safety car, clamping |
+| `test_desktop.py` | Simulated key presses and clicks on the real window |
 
 ## Checking against reality
 

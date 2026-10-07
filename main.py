@@ -3,6 +3,7 @@
 Usage:
     python main.py list-rounds --year 2024
     python main.py prepare --year 2024 --round 1 [--refresh-data]
+    python main.py desktop --year 2024 --round 2 [--start 600 --speed 4]
 """
 
 import argparse
@@ -42,6 +43,16 @@ def cmd_prepare(args):
     console.print(f"Safety car on screen for {sc_frames / meta['fps']:.0f}s")
 
 
+def cmd_desktop(args):
+    from src.f1_data import prepare_race
+    from desktop.replay_window import run
+
+    race = prepare_race(args.year, args.round, args.session)
+    selected = [c.strip().upper() for c in args.select.split(",")] if args.select else None
+    run(race, start=args.start, speed=args.speed, selected=selected,
+        screenshot=args.screenshot, show_legend=args.legend, antialias=not args.no_antialias)
+
+
 def build_parser():
     parser = argparse.ArgumentParser(description="F1 Race Replay")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -56,6 +67,19 @@ def build_parser():
     p.add_argument("--session", default="R", choices=["R", "S"])
     p.add_argument("--refresh-data", action="store_true", help="Recompute even if already prepared")
     p.set_defaults(func=cmd_prepare)
+
+    p = sub.add_parser("desktop", help="Open the Arcade desktop replay")
+    p.add_argument("--year", type=int, required=True)
+    p.add_argument("--round", type=int, required=True)
+    p.add_argument("--session", default="R", choices=["R", "S"])
+    p.add_argument("--start", type=float, default=0.0, help="Start at this many seconds")
+    p.add_argument("--speed", type=float, default=1.0, help="Playback speed, e.g. 4")
+    p.add_argument("--select", help="Drivers to show telemetry for, e.g. VER,NOR")
+    p.add_argument("--legend", action="store_true", help="Open with the legend shown")
+    p.add_argument("--no-antialias", action="store_true",
+                   help="Faster on machines without a GPU (e.g. WSL), slightly jaggier edges")
+    p.add_argument("--screenshot", help="Save one frame to this PNG and exit")
+    p.set_defaults(func=cmd_desktop)
     return parser
 
 

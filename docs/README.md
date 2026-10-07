@@ -18,7 +18,7 @@ https://claude.ai/code/artifact/45446912-d41f-4b9f-b819-757b967892df
 | 04 | [The data pipeline (ETL)](04-data-pipeline.md) | 2 |
 | 05 | [Data management: caching, columnar storage](05-data-management.md) | 2 |
 | 06 | [Safety car & race status modelling](06-safety-car-and-race-status.md) | 2 |
-| 07 | Arcade desktop viewer | 3 |
+| 07 | [Arcade desktop viewer](07-arcade-desktop.md) | 3 |
 | 08 | Backend with FastAPI | 4 |
 | 09 | Real-time data with WebSockets | 4 |
 | 10 | Next.js, React & TypeScript | 5 |
@@ -38,6 +38,7 @@ pip install -r requirements.txt
 python main.py list-rounds --year 2024
 python main.py prepare --year 2024 --round 1   # Bahrain: no SC, no retirements
 python main.py prepare --year 2024 --round 2   # Saudi Arabia: safety car + 2 OUT
+python main.py desktop --year 2024 --round 2   # open the desktop replay
 python -m pytest                               # run the tests
 ```
 
