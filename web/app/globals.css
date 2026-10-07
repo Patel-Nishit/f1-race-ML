@@ -20,3 +20,14 @@ body {
   background: var(--color-bg);
   color: var(--color-ink);
 }
+
+/* Pulsing glow for status banners (colour comes from the --glow variable) */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--glow) 60%, transparent); }
+  50% { box-shadow: 0 0 22px 6px color-mix(in srgb, var(--glow) 45%, transparent); }
+}
+.animate-pulse-glow { animation: pulse-glow 1.6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-glow { animation: none; }
+}

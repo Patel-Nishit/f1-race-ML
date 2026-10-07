@@ -129,11 +129,16 @@ both apps show Jeddah the same way round, which confirms the flip is right.
 | Paused | clock and canvas both frozen |
 | Production build | `/` static; `/replay/...` partial prerender |
 
-## Coming in phases 6–7
+## Added in phase 6
 
-The leaderboard, full controls with keyboard shortcuts, legend, safety car
-glow, Insights menu and telemetry panel. This chapter will gain a section on
-the safety car's pulsing glow (canvas `shadowBlur` + a sine wave).
+- **Selected cars:** a white ring plus a name tag (the second selected car's
+  tag goes below its dot so close cars don't overprint), drawn from the UI
+  store with `getState()` like everything else in the loop.
+- **Click a car to select it:** each frame remembers where it drew every car;
+  a click picks the nearest one within 14 px.
+
+Phase 7 adds the safety car's pulsing glow (canvas `shadowBlur` + a sine
+wave).
 
 ## Exercises
 

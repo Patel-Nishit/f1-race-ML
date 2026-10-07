@@ -1,0 +1,32 @@
+"use client";
+
+import { useEffect } from "react";
+import { useReplayStore } from "@/lib/replayStore";
+import { shortcutFor } from "@/lib/shortcuts";
+import { useUiStore } from "@/lib/uiStore";
+
+/** Global keyboard shortcuts for the replay page. */
+export function useKeyboardShortcuts() {
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      // don't steal keys while someone is typing in a field
+      if (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) return;
+      const action = shortcutFor(e);
+      if (!action) return;
+      // Stop the browser's default (Space/arrows scroll the page, and Space
+      // would also "click" whichever button has focus: a double toggle).
+      e.preventDefault();
+      if (e.repeat && action.kind !== "command") return;
+      const ui = useUiStore.getState();
+      if (action.kind === "command") {
+        if (e.repeat && action.command.type === "toggle") return;
+        useReplayStore.getState().send(action.command);
+      } else if (action.kind === "legend") ui.toggleLegend();
+      else if (action.kind === "insights") ui.toggleInsights();
+      else ui.clearSelection();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+}

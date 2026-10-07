@@ -9,10 +9,12 @@
 import { useEffect, useRef } from "react";
 import { interpolate } from "@/lib/interpolate";
 import { useReplayStore } from "@/lib/replayStore";
+import { useUiStore } from "@/lib/uiStore";
 import { fitTrack, toScreen, type Transform } from "@/lib/track";
 import type { RaceMeta } from "@/lib/types";
 
 const CAR_RADIUS = 7;
+const CLICK_RADIUS = 14; // generous, so cars are easy to click
 
 export function TrackCanvas({ meta }: { meta: RaceMeta }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -24,6 +26,8 @@ export function TrackCanvas({ meta }: { meta: RaceMeta }) {
     let transform: Transform | null = null;
     let trackLayer: HTMLCanvasElement | null = null;
     let frameId = 0;
+    // where each car was drawn last frame, for click hit-testing
+    let drawn: { code: string; x: number; y: number }[] = [];
 
     // The outline never changes, so draw it once onto an offscreen canvas
     // ("layer") and copy that image every frame: one drawImage call instead
@@ -83,9 +87,21 @@ export function TrackCanvas({ meta }: { meta: RaceMeta }) {
       // back-markers first, so the leader is drawn on top
       const order = new Map(useReplayStore.getState().buffer.latest!.drivers.map((d) => [d.code, d.position]));
       const cars = [...state.cars].sort((a, b) => (order.get(b.code) ?? 0) - (order.get(a.code) ?? 0));
+      const selected = useUiStore.getState().selected;
+      drawn = [];
       for (const car of cars) {
         if (car.out) continue;
         const [x, y] = toScreen(transform, car.x, car.y);
+        drawn.push({ code: car.code, x, y });
+        if (selected.includes(car.code)) {
+          ctx.beginPath();
+          ctx.arc(x, y, CAR_RADIUS + 5, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(255,255,255,0.3)";
+          ctx.fill();
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = "#fff";
+          ctx.stroke();
+        }
         ctx.beginPath();
         ctx.arc(x, y, CAR_RADIUS, 0, Math.PI * 2);
         ctx.fillStyle = colours.get(car.code) ?? "#888";
@@ -93,6 +109,21 @@ export function TrackCanvas({ meta }: { meta: RaceMeta }) {
         ctx.lineWidth = 1.5;
         ctx.strokeStyle = "#000";
         ctx.stroke();
+      }
+
+      // name tags for selected cars (2nd one below its car, so close cars don't overprint)
+      ctx.font = "bold 11px var(--font-titillium), sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      for (const car of drawn) {
+        const slot = selected.indexOf(car.code);
+        if (slot < 0) continue;
+        const dy = slot === 1 ? CAR_RADIUS + 12 : -(CAR_RADIUS + 12);
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "#101116";
+        ctx.strokeText(car.code, car.x, car.y + dy);
+        ctx.fillStyle = "#fff";
+        ctx.fillText(car.code, car.x, car.y + dy);
       }
 
       if (state.sc) {
@@ -108,9 +139,25 @@ export function TrackCanvas({ meta }: { meta: RaceMeta }) {
     };
     frameId = requestAnimationFrame(draw);
 
+    // Click a car to select it, same as clicking its leaderboard row.
+    const onClick = (e: MouseEvent) => {
+      const box = canvas.getBoundingClientRect();
+      const px = e.clientX - box.left;
+      const py = e.clientY - box.top;
+      let best: string | null = null;
+      let bestDist = CLICK_RADIUS;
+      for (const car of drawn) {
+        const d = Math.hypot(car.x - px, car.y - py);
+        if (d < bestDist) [best, bestDist] = [car.code, d];
+      }
+      if (best) useUiStore.getState().toggleDriver(best);
+    };
+    canvas.addEventListener("click", onClick);
+
     return () => {
       cancelAnimationFrame(frameId);
       observer.disconnect();
+      canvas.removeEventListener("click", onClick);
     };
   }, [meta]);
 

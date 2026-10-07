@@ -35,7 +35,14 @@
   *Learned:* TypeScript, React components/state/effects, race conditions,
   Zustand selectors, App Router, Suspense & Cache Components, canvas,
   requestAnimationFrame, interpolation, reconnect strategies.
-- [ ] **Phase 6 — Web HUD (leaderboard, clock, controls, legend, OUT).**
+- [x] **Phase 6 — Web HUD (leaderboard, clock, controls, legend, OUT).**
+  Top bar (lap, clock, status, speed, connection), SC/VSC/red banner,
+  animated leaderboard with tyres/OUT/+N LAP/DRS, controls + scrubbable
+  timeline with SC bands, keyboard shortcuts, legend, click-to-select on
+  leaderboard and map. Fixed "+1 LAP" bug (now matches official results for
+  3 races). 15 vitest + 61 pytest; 16-check browser test, stable over 9 runs.
+  *Learned:* CSS grid areas, layout (FLIP) animations, pointer events and
+  drag, keyboard handling and focus, accessibility basics, flaky tests.
 - [ ] **Phase 7 — Safety car, Insights menu, Telemetry panel.**
 - [ ] **Phase 8 — Polish, deploy, resume.**
 

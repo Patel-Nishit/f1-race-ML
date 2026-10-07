@@ -21,6 +21,8 @@ def make_race():
         "drs": np.tile([12, 0], (n, 1)),
         "position": np.tile([1, 2], (n, 1)),
         "leader_lap": np.array([1] * 10 + [2] * 21),
+        # laps completed as a float: VER 1.3 laps ahead of HAM (lapped him)
+        "progress": np.tile([1.5, 0.2], (n, 1)),
         "track_status": np.ones(n, dtype=np.int8),
         "sc_state": np.zeros(n, dtype=np.int8),
         "sc_x": np.full(n, np.nan), "sc_y": np.full(n, np.nan),
@@ -60,6 +62,22 @@ def test_out_and_laps_down():
     ham_after = build_snapshot(race, 2.5)["drivers"][1]
     assert not ham_before["out"] and ham_before["laps_down"] == 1
     assert ham_after["out"] and ham_after["laps_down"] == 0
+
+
+def test_lower_lap_number_is_not_lapped():
+    # Leader has just started lap 2 (progress 1.05); P2 is 0.1 lap behind on
+    # lap 1. Different lap numbers, but P2 is NOT a lap down.
+    race = make_race()
+    race.arrays["progress"] = np.tile([1.05, 0.95], (race.n_frames, 1))
+    assert build_snapshot(race, 1.5)["drivers"][1]["laps_down"] == 0
+
+
+def test_exactly_one_lap_down_despite_measurement_gap():
+    # Real data: lap fractions stop at ~0.996, so "one lap down" can measure
+    # 0.9961 laps behind (2024 Saudi Arabia, SAR at the flag).
+    race = make_race()
+    race.arrays["progress"] = np.tile([49.996, 49.0 - 0.0001], (race.n_frames, 1))
+    assert build_snapshot(race, 1.5)["drivers"][1]["laps_down"] == 1
 
 
 def test_safety_car_and_status():

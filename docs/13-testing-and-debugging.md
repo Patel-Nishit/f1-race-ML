@@ -69,6 +69,11 @@ the page reconnects and resumes at the same time. Playwright lives in a
 separate scratch environment, not the project's dependencies; packaging
 these as a proper `e2e/` suite is a phase 8 task.
 
+**Flaky tests.** A test that sometimes fails usually waits a *fixed* time
+(`sleep(0.4)`) for something that *usually* takes less. Poll for the
+condition with a timeout instead (`until(lambda: lap() == l0 + 1)`). After
+that change, the 16-check HUD test passed 9 runs out of 9.
+
 Lesson from writing them: `pgrep -f "main.py serve"` also matched our own
 shell command (its text contained that string) and killed it. Finding the
 server by its **port** (`ss -ltnp 'sport = :8000'`) was reliable.

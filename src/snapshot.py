@@ -16,6 +16,8 @@ from src.lib.tyres import get_tyre_compound_name
 from src.race_status import TRACK_STATUS
 from src.safety_car import HIDDEN, STATE_NAMES
 
+LAPPED_TOLERANCE = 0.01  # laps (~50 m); see build_snapshot
+
 
 def lap_start_times(race) -> list:
     """Replay time at which the leader starts each lap (index 0 = lap 1)."""
@@ -73,8 +75,18 @@ def build_snapshot(race, t: float) -> dict:
     drivers.sort(key=lambda r: r["position"])
 
     leader_lap = int(a["leader_lap"][i])
+    # "Lapped" means a full lap behind the leader, not merely on a lower lap
+    # number: right after the leader crosses the line, everyone else is still
+    # on the previous lap without being lapped. progress = laps as a float.
+    # Each lap's last telemetry sample lands a few metres before the line
+    # (lap fractions top out around 0.996), so a car exactly one lap down can
+    # measure 0.996 laps behind; LAPPED_TOLERANCE absorbs that.
+    progress = a["progress"][i]
+    leader_progress = progress[int(np.argmin(a["position"][i]))]
+    index = {info["code"]: d for d, info in enumerate(race.meta["drivers"])}
     for row in drivers:
-        row["laps_down"] = max(0, leader_lap - row["lap"]) if not row["out"] else 0
+        behind = leader_progress - progress[index[row["code"]]]
+        row["laps_down"] = int(max(0.0, math.floor(behind + LAPPED_TOLERANCE))) if not row["out"] else 0
 
     status = int(a["track_status"][i])
     sc_state = int(a["sc_state"][i])

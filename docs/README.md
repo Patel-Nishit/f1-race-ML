@@ -23,7 +23,7 @@ https://claude.ai/code/artifact/45446912-d41f-4b9f-b819-757b967892df
 | 09 | [Real-time data with WebSockets](09-real-time-websockets.md) | 4 |
 | 10 | [Next.js, React & TypeScript](10-nextjs-react-typescript.md) | 5 |
 | 11 | [Canvas rendering & animation](11-canvas-rendering-and-animation.md) | 5–7 |
-| 12 | UI features | 6–7 |
+| 12 | [UI features (the HUD)](12-ui-features.md) | 6–7 |
 | 13 | [Testing & debugging](13-testing-and-debugging.md) | all |
 | 14 | Deployment & your resume | 8 |
 
