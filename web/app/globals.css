@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+/* Design tokens: same palette as the desktop app (desktop/theme.py) */
+@theme inline {
+  --color-bg: #101116;
+  --color-panel: #1a1c24;
+  --color-panel-light: #262934;
+  --color-line: #3a3e4c;
+  --color-ink: #ecedf2;
+  --color-dim: #969aaa;
+  --color-faint: #5f6373;
+  --color-f1: #e10600;
+  --color-sc: #ffb000;
+  --color-ok: #00aa50;
+  --font-sans: var(--font-titillium);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+}

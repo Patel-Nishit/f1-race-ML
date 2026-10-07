@@ -27,7 +27,14 @@
   *Learned:* HTTP/REST, status codes, FastAPI validation, async vs threads,
   background jobs, processes & queues, CORS, WebSockets, protocol design,
   backpressure.
-- [ ] **Phase 5 — Next.js skeleton + track canvas.**
+- [x] **Phase 5 — Next.js skeleton + track canvas.** `web/`: Next.js 16 +
+  TypeScript + Tailwind + Zustand. Race picker with prepare + progress
+  polling; replay page with WebSocket client (acks, reconnect with backoff,
+  resume), 60 fps canvas with interpolation. 10 vitest tests; Playwright
+  end-to-end checks incl. killing the server mid-replay.
+  *Learned:* TypeScript, React components/state/effects, race conditions,
+  Zustand selectors, App Router, Suspense & Cache Components, canvas,
+  requestAnimationFrame, interpolation, reconnect strategies.
 - [ ] **Phase 6 — Web HUD (leaderboard, clock, controls, legend, OUT).**
 - [ ] **Phase 7 — Safety car, Insights menu, Telemetry panel.**
 - [ ] **Phase 8 — Polish, deploy, resume.**

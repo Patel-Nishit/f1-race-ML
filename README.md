@@ -5,9 +5,11 @@ leaderboard with tyres, safety car, retirements, playback controls and driver
 telemetry. One Python data pipeline (FastF1 + numpy) feeds two viewers: an
 Arcade desktop app and a Next.js web app streamed over WebSockets.
 
-![Desktop viewer](docs/images/desktop-safety-car.png)
+| Desktop (Arcade) | Web (Next.js) |
+|---|---|
+| ![Desktop viewer](docs/images/desktop-safety-car.png) | ![Web replay](docs/images/web-replay.png) |
 
-**Status:** data pipeline, desktop viewer and streaming API done (phases 1–4 of 8). See [docs/PROGRESS.md](docs/PROGRESS.md).
+**Status:** data pipeline, desktop viewer, streaming API and web app skeleton done (phases 1–5 of 8). See [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ## Quick start
 
@@ -18,7 +20,8 @@ python main.py list-rounds --year 2024
 python main.py prepare --year 2024 --round 2
 python main.py desktop --year 2024 --round 2
 python main.py serve        # API + WebSocket on :8000, docs at /docs
-python -m pytest
+cd web && npm install && npm run dev   # web app on http://localhost:3000
+python -m pytest            # and: cd web && npm test
 ```
 
 ## Learning guide

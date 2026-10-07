@@ -216,3 +216,4 @@ web/.next/
 
 # Our own package (the template above ignores every lib/ folder)
 !src/lib/
+!web/lib/

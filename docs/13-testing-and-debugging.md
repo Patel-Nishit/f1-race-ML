@@ -50,6 +50,29 @@ This only works because the logic lives in pure functions
 (`src/transform.py`, `src/safety_car.py`) that take arrays and return arrays.
 Code that mixes downloading, computing and saving is very hard to test.
 
+Web app tests (from `web/`):
+
+```bash
+npm test             # vitest: decoding, ack handling, interpolation, transforms
+npm run typecheck    # TypeScript
+npm run lint         # ESLint (Next.js rules)
+npm run build        # production build (catches Next.js rule violations)
+```
+
+## End-to-end tests with a real browser
+
+Unit tests can't tell you the page actually works. We drove Chromium with
+**Playwright**: open the race picker, click "Watch replay", wait for "Live",
+check the clock advances and the canvas changes, press Pause and check
+everything freezes. Then we **killed the API server mid-replay** and checked
+the page reconnects and resumes at the same time. Playwright lives in a
+separate scratch environment, not the project's dependencies; packaging
+these as a proper `e2e/` suite is a phase 8 task.
+
+Lesson from writing them: `pgrep -f "main.py serve"` also matched our own
+shell command (its text contained that string) and killed it. Finding the
+server by its **port** (`ss -ltnp 'sport = :8000'`) was reliable.
+
 ## What the tests cover
 
 | File | Covers |
@@ -91,6 +114,10 @@ distance bias, and the last finisher being one frame short of "finished"
   moment of a retirement. Bugs live at boundaries.
 - **Plot it.** A 10-line matplotlib script showed the safety car's behaviour
   faster than any number could.
+- **Check what git ignores.** The standard Python `.gitignore` ignores every
+  folder named `lib/`, and it silently dropped both `src/lib/` and `web/lib/`
+  from commits. `git status --ignored` shows what's being skipped; we
+  un-ignore our folders with `!src/lib/` and `!web/lib/`.
 - **Count the weird.** "How many frames does the order change?" turned a vague
   "the leaderboard looks jumpy" into a number we could drive down.
 
