@@ -6,9 +6,9 @@ export function InsightCard({ title, children, aside }: {
 }) {
   return (
     <section aria-label={title}
-      className="pointer-events-auto rounded-lg border border-line/70 bg-panel/95 p-3 shadow-lg backdrop-blur">
+      className="pointer-events-auto rounded-ui border border-line bg-panel p-3 lg:glass">
       <div className="mb-2 flex items-baseline justify-between">
-        <h3 className="text-xs font-bold tracking-wider text-dim">{title.toUpperCase()}</h3>
+        <h3 className="text-sm font-semibold">{title}</h3>
         {aside}
       </div>
       {children}
@@ -17,5 +17,5 @@ export function InsightCard({ title, children, aside }: {
 }
 
 export function EmptyHint({ children }: { children: React.ReactNode }) {
-  return <p className="py-2 text-sm text-faint">{children}</p>;
+  return <p className="py-2 text-sm text-dim">{children}</p>;
 }

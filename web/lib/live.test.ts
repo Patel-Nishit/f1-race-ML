@@ -101,6 +101,16 @@ describe("track transform", () => {
     expect(toScreen(tr, 100, 100)).toEqual([200, 50]); // top-right: y is flipped
   });
 
+  it("keeps the track out of the inset areas", () => {
+    const tr = fitTrack(square, 400, 300, 0, { left: 100, top: 50, right: 0, bottom: 50 });
+    const [x0, y0] = toScreen(tr, 0, 100); // top-left corner of the square
+    const [x1, y1] = toScreen(tr, 100, 0); // bottom-right corner
+    expect(x0).toBeGreaterThanOrEqual(100);
+    expect(y0).toBeGreaterThanOrEqual(50);
+    expect(x1).toBeLessThanOrEqual(400);
+    expect(y1).toBeLessThanOrEqual(250);
+  });
+
   it("rotates by the circuit angle", () => {
     const tr = fitTrack({ ...square, rotation: 90 }, 300, 300, 50);
     const [ax] = toScreen(tr, 100, 0);

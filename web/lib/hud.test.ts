@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { isTypingTarget, shortcutFor, type KeyLike } from "./shortcuts";
-import { lapTicks, neutralisedPeriods } from "./timeline";
+import { lapAt, lapTicks, neutralisedPeriods } from "./timeline";
 import { useUiStore } from "./uiStore";
 
 const key = (k: string, mods: Partial<KeyLike> = {}): KeyLike =>
@@ -49,6 +49,14 @@ describe("timeline", () => {
       { start: 1392, end: 1471, status: 6 }, // VSC + VSC ending merged
       { start: 4719, end: 4800, status: 6 }, // still on at the end
     ]);
+  });
+
+  it("finds the lap at a given time", () => {
+    const starts = [0, 90, 181, 270];
+    expect(lapAt(starts, 0)).toBe(1);
+    expect(lapAt(starts, 89.9)).toBe(1);
+    expect(lapAt(starts, 90)).toBe(2);
+    expect(lapAt(starts, 5000)).toBe(4);
   });
 
   it("puts a tick every 5 laps", () => {

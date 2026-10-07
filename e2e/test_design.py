@@ -42,3 +42,28 @@ def test_theme_tokens_meet_wcag_aa(page):
     failures = [f"{fg} on {bg}: {contrast(tokens[fg], tokens[bg]):.2f} < {need}"
                 for fg, bg, need in PAIRS if contrast(tokens[fg], tokens[bg]) < need]
     assert not failures, failures
+
+
+def test_floating_panels_are_glass(page):
+    """Desktop replay: the panels over the track really get their surface and
+    border, and nothing over the live canvas uses a backdrop blur (measured:
+    re-blurring the canvas every frame halved the frame rate)."""
+    page.goto(f"{WEB}/replay/2024/2")
+    page.get_by_text("Live", exact=True).wait_for(timeout=60_000)
+    style = page.evaluate("""() => { const s = getComputedStyle(document.querySelector('aside'));
+        return { bg: s.backgroundColor, border: s.borderTopWidth }; }""")
+    assert style["bg"] not in ("rgba(0, 0, 0, 0)", "transparent"), style
+    assert style["border"] == "1px", style
+    blurred = page.evaluate("""() => [...document.querySelectorAll('*')]
+        .filter(e => getComputedStyle(e).backdropFilter !== 'none').length""")
+    assert blurred == 0, f"{blurred} element(s) blur the live canvas behind them"
+
+
+def test_all_twenty_drivers_fit_in_the_tower(page):
+    page.goto(f"{WEB}/replay/2024/2")
+    page.get_by_text("Live", exact=True).wait_for(timeout=60_000)
+    rows = page.locator("aside ol li")
+    rows.nth(19).wait_for()
+    box = page.get_by_role("complementary", name="Leaderboard").bounding_box()
+    last = rows.nth(19).bounding_box()
+    assert last["y"] + last["height"] <= box["y"] + box["height"], "the 20th row should be visible without scrolling"

@@ -268,3 +268,38 @@ Dials 8 / 7 / 4. ✅ pass, ➖ not applicable, with reasons.
 | Loading (skeletons), empty and error states (retry) | ✅ |
 | Icons: Phosphor only (+ one geometric brand mark) | ✅ |
 | Core Web Vitals | ➖ not measured: no Lighthouse in this environment |
+
+### Step 3: replay (done): Taste pre-flight
+
+Dials 5 / 6 / 8. The replay is a real-time dashboard, outside the skill's
+landing-page scope (its Section 13), so landing-only checks are ➖.
+
+| Check | Result |
+|-------|--------|
+| Zero em/en dashes | ✅ `grep` finds 0 |
+| One theme per page; tested in dark and light | ✅ screenshots at 1440 / 1024 / 390 px in both, 38 browser tests in both |
+| One accent; status colours only for state (SC amber, green flag/DRS) | ✅ |
+| Shape rule: 6 px panels and controls, slanted chips (lap bug, positions, status, banner), round tyres | ✅ after fixing a round play button |
+| Button and text contrast (WCAG AA, live tokens) | ✅ `e2e/test_design.py` |
+| No CTA wraps; icons Phosphor only | ✅ |
+| Caps restraint: zero uppercase-tracked labels; data cells (LAP, LEADER, OUT) are content | ✅ |
+| Middle dots: weather line replaced by a stat grid | ✅ |
+| Motion motivated: overtakes slide, jumps snap, banner enters, SC glows (state); off under reduced motion | ✅ |
+| No `window` scroll listeners; effects clean up | ✅ |
+| `100dvh`, never `h-screen` | ✅ |
+| Mobile collapse explicit: column layout, Tower / Insights tabs, pinned controls | ✅ audit item R1 fixed |
+| Loading skeleton in the real layout's shape; error page; connection-lost banner | ✅ |
+| Glass panels: surface, border, inner highlight; **no backdrop blur** (measured 60 → ~27 fps with it over the live canvas) | ✅ guarded by a browser test |
+| All 20 drivers fit in the tower at 900 px | ✅ guarded by a browser test |
+| Hero, bento, eyebrow count, logo wall, quotes, zigzag, marquee | ➖ landing-page checks |
+
+Lessons from this step:
+
+- **Lightning CSS and `backdrop-filter`:** given both the standard and the
+  `-webkit-` property, it kept only the prefixed one, which Chrome ignores.
+  Write only the standard property.
+- **The dev server can miss `globals.css` edits** (it happened twice), so
+  restart it after changing that file. A browser test now checks the live
+  tokens.
+- **Measure effects on a live canvas.** The blur looked nice and cost half
+  the frame rate.

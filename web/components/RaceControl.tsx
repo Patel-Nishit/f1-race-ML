@@ -15,10 +15,19 @@ export function RaceControl({ meta }: { meta: RaceMeta }) {
   return (
     <InsightCard title="Race control & weather">
       {weather && (
-        <p className="mb-2 text-sm">
-          Air <b>{weather.air_temp.toFixed(1)}°C</b> · Track <b>{weather.track_temp?.toFixed(1)}°C</b>
-          <span className="text-dim"> · {weather.humidity?.toFixed(0)}% humidity · {weather.raining ? "raining" : "dry"}</span>
-        </p>
+        <dl className="mb-3 grid grid-cols-4 gap-2 text-sm">
+          {[
+            ["Air", `${weather.air_temp.toFixed(1)}°C`],
+            ["Track", weather.track_temp != null ? `${weather.track_temp.toFixed(1)}°C` : "-"],
+            ["Humidity", weather.humidity != null ? `${weather.humidity.toFixed(0)}%` : "-"],
+            ["Rain", weather.raining ? "Yes" : "Dry"],
+          ].map(([label, value]) => (
+            <div key={label}>
+              <dt className="text-xs text-dim">{label}</dt>
+              <dd className="font-mono font-semibold tabular-nums">{value}</dd>
+            </div>
+          ))}
+        </dl>
       )}
       {past.length === 0 ? (
         <EmptyHint>No flags yet.</EmptyHint>

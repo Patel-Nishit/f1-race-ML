@@ -18,9 +18,18 @@ function rotate(x: number, y: number, cos: number, sin: number): [number, number
   return [x * cos - y * sin, x * sin + y * cos];
 }
 
-/** insetLeft reserves space on the left (e.g. for the Insights column). */
-export function fitTrack(track: TrackMeta, width: number, height: number, padding = 40, insetLeft = 0): Transform {
-  width -= insetLeft;
+/** Space reserved on each side for UI floating over the track (panels, docks). */
+export interface Insets {
+  left?: number;
+  right?: number;
+  top?: number;
+  bottom?: number;
+}
+
+export function fitTrack(track: TrackMeta, width: number, height: number, padding = 40, insets: Insets = {}): Transform {
+  const { left = 0, right = 0, top = 0, bottom = 0 } = insets;
+  width -= left + right;
+  height -= top + bottom;
   const angle = (track.rotation * Math.PI) / 180;
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
@@ -35,8 +44,8 @@ export function fitTrack(track: TrackMeta, width: number, height: number, paddin
     scale,
     cos,
     sin,
-    offsetX: insetLeft + width / 2 - ((minX + maxX) / 2) * scale,
-    offsetY: height / 2 + ((minY + maxY) / 2) * scale, // + because y is flipped
+    offsetX: left + width / 2 - ((minX + maxX) / 2) * scale,
+    offsetY: top + height / 2 + ((minY + maxY) / 2) * scale, // + because y is flipped
   };
 }
 

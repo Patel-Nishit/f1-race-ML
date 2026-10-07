@@ -11,14 +11,16 @@ import { interpolate } from "@/lib/interpolate";
 import { useReplayStore } from "@/lib/replayStore";
 import { onThemeChange, readTheme, type CanvasTheme } from "@/lib/theme";
 import { useUiStore } from "@/lib/uiStore";
-import { fitTrack, toScreen, type Transform } from "@/lib/track";
+import { fitTrack, toScreen, type Insets, type Transform } from "@/lib/track";
 import type { RaceMeta } from "@/lib/types";
 
-const CAR_RADIUS = 7;
+const CAR_RADIUS = 7; // at full size; smaller maps get smaller dots (min 4 px)
 const CLICK_RADIUS = 14; // generous, so cars are easy to click
 
-export function TrackCanvas({ meta, insetLeft = 0 }: { meta: RaceMeta; insetLeft?: number }) {
+export function TrackCanvas({ meta, insets = {} }: { meta: RaceMeta; insets?: Insets }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  // a stable key, so a new-but-equal insets object doesn't restart the canvas
+  const insetsKey = [insets.left, insets.right, insets.top, insets.bottom].map((v) => v ?? 0).join(",");
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -40,8 +42,13 @@ export function TrackCanvas({ meta, insetLeft = 0 }: { meta: RaceMeta; insetLeft
     // The outline never changes, so draw it once onto an offscreen canvas
     // ("layer") and copy that image every frame: one drawImage call instead
     // of re-tracing ~700 points.
+    let carRadius = CAR_RADIUS;
+
     function buildTrackLayer(width: number, height: number, dpr: number) {
-      transform = fitTrack(meta.track, width, height, 48, insetLeft);
+      const [left, right, top, bottom] = insetsKey.split(",").map(Number);
+      transform = fitTrack(meta.track, width, height, 48, { left, right, top, bottom });
+      const area = Math.min(width - left - right, height - top - bottom);
+      carRadius = Math.max(4, Math.min(CAR_RADIUS, (CAR_RADIUS * area) / 560));
       const layer = document.createElement("canvas");
       layer.width = width * dpr;
       layer.height = height * dpr;
@@ -108,7 +115,7 @@ export function TrackCanvas({ meta, insetLeft = 0 }: { meta: RaceMeta; insetLeft
         drawn.push({ code: car.code, x, y });
         if (selected.includes(car.code)) {
           ctx.beginPath();
-          ctx.arc(x, y, CAR_RADIUS + 5, 0, Math.PI * 2);
+          ctx.arc(x, y, carRadius + 5, 0, Math.PI * 2);
           ctx.globalAlpha = 0.3;
           ctx.fillStyle = theme.tagInk;
           ctx.fill();
@@ -118,7 +125,7 @@ export function TrackCanvas({ meta, insetLeft = 0 }: { meta: RaceMeta; insetLeft
           ctx.stroke();
         }
         ctx.beginPath();
-        ctx.arc(x, y, CAR_RADIUS, 0, Math.PI * 2);
+        ctx.arc(x, y, carRadius, 0, Math.PI * 2);
         ctx.fillStyle = colours.get(car.code) ?? "#888";
         ctx.fill();
         ctx.lineWidth = 1.5;
@@ -133,7 +140,7 @@ export function TrackCanvas({ meta, insetLeft = 0 }: { meta: RaceMeta; insetLeft
       for (const car of drawn) {
         const slot = selected.indexOf(car.code);
         if (slot < 0) continue;
-        const dy = slot === 1 ? CAR_RADIUS + 12 : -(CAR_RADIUS + 12);
+        const dy = slot === 1 ? carRadius + 12 : -(carRadius + 12);
         ctx.lineWidth = 3;
         ctx.strokeStyle = theme.tagHalo;
         ctx.strokeText(car.code, car.x, car.y + dy);
@@ -176,7 +183,7 @@ export function TrackCanvas({ meta, insetLeft = 0 }: { meta: RaceMeta; insetLeft
       stopThemeWatch();
       canvas.removeEventListener("click", onClick);
     };
-  }, [meta, insetLeft]);
+  }, [meta, insetsKey]);
 
   return <canvas ref={canvasRef} className="h-full w-full" aria-label={`Track map of ${meta.event_name}`} role="img" />;
 }

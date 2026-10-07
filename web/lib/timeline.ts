@@ -33,3 +33,10 @@ export function lapTicks(lapStarts: number[], every = 5): { lap: number; t: numb
     .map((t, i) => ({ lap: i + 1, t }))
     .filter(({ lap }) => lap > 1 && lap % every === 0);
 }
+
+/** Which lap the leader was on at replay time t (1-based). */
+export function lapAt(lapStarts: number[], t: number): number {
+  let lap = 1;
+  for (let i = 0; i < lapStarts.length; i++) if (lapStarts[i] <= t) lap = i + 1;
+  return lap;
+}
