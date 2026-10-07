@@ -18,6 +18,7 @@ export function Leaderboard({ drivers }: { drivers: DriverMeta[] }) {
   const jumped = useReplayStore((s) => s.buffer.prev === s.buffer.latest);
   const selected = useUiStore((s) => s.selected);
   const toggleDriver = useUiStore((s) => s.toggleDriver);
+  const showGaps = useUiStore((s) => s.tools.gaps);
   const info = new Map(drivers.map((d) => [d.code, d]));
 
   return (
@@ -30,7 +31,11 @@ export function Leaderboard({ drivers }: { drivers: DriverMeta[] }) {
         {(rows ?? []).map((d) => {
           const meta = info.get(d.code);
           const isSelected = selected.includes(d.code);
-          const status = d.out ? "OUT" : d.laps_down ? `+${d.laps_down} LAP` : d.drs_open ? "DRS" : "";
+          const status = d.out ? "OUT"
+            : d.laps_down ? `+${d.laps_down} LAP`
+            : !showGaps ? ""
+            : d.position === 1 ? "LEADER"
+            : d.gap != null ? `+${d.gap.toFixed(1)}` : "";
           return (
             <motion.li key={d.code} layout="position"
               transition={jumped ? { duration: 0 } : { type: "spring", stiffness: 500, damping: 45 }}>
@@ -44,10 +49,15 @@ export function Leaderboard({ drivers }: { drivers: DriverMeta[] }) {
               >
                 <span className="text-right font-mono font-bold tabular-nums">{d.position}</span>
                 <span className="h-5 rounded-sm" style={{ background: d.out ? "#5f6373" : meta?.color }} />
-                <span className="font-bold tracking-wide">{d.code}</span>
+                <span className="flex items-center gap-1.5 font-bold tracking-wide">
+                  {d.code}
+                  {d.drs_open && !d.out && (
+                    <span className="rounded-sm bg-ok px-1 text-[9px] font-black leading-tight text-black">DRS</span>
+                  )}
+                </span>
                 <TyreBadge compound={d.tyre} dim={d.out} />
-                <span className={`text-right text-xs font-bold ${
-                  d.out ? "text-f1" : status === "DRS" ? "text-ok" : "text-dim"}`}>
+                <span className={`text-right font-mono text-xs font-bold tabular-nums ${
+                  d.out ? "text-f1" : "text-dim"}`}>
                   {status}
                 </span>
               </button>

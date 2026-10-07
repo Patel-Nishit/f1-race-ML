@@ -2,16 +2,15 @@
 
 import { useEffect } from "react";
 import { useReplayStore } from "@/lib/replayStore";
-import { shortcutFor } from "@/lib/shortcuts";
+import { isTypingTarget, shortcutFor } from "@/lib/shortcuts";
 import { useUiStore } from "@/lib/uiStore";
 
 /** Global keyboard shortcuts for the replay page. */
 export function useKeyboardShortcuts() {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      // don't steal keys while someone is typing in a field
-      if (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) return;
+      // don't steal keys while someone is typing in a text field
+      if (isTypingTarget(e.target as HTMLInputElement)) return;
       const action = shortcutFor(e);
       if (!action) return;
       // Stop the browser's default (Space/arrows scroll the page, and Space

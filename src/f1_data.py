@@ -12,6 +12,7 @@ from src.lib.time import parse_time_string, format_time
 from src.race_status import detect_retirements, is_finisher
 from src.race_store import RaceData, is_prepared, load_race, save_race
 from src.safety_car import compute_safety_car
+from src.strategy import stints_from_laps
 from src.track import build_track_outline, find_pit_points
 from src.transform import (compute_positions, correct_lap1_progress, expand_intervals, make_timeline,
                            resample_linear, resample_step)
@@ -261,6 +262,7 @@ def prepare_race(year, round_number, session_type='R', refresh=False, progress=N
         "drivers": info,
         "retirements": retirements,
         "track": track,
+        "stints": stints_from_laps(session.laps),
         "track_status_changes": [
             {"t": round(float(s), 2), "status": int(c)} for s, c in zip(starts, status_codes)
         ],

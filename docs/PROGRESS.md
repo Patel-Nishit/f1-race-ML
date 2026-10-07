@@ -43,7 +43,15 @@
   3 races). 15 vitest + 61 pytest; 16-check browser test, stable over 9 runs.
   *Learned:* CSS grid areas, layout (FLIP) animations, pointer events and
   drag, keyboard handling and focus, accessibility basics, flaky tests.
-- [ ] **Phase 7 — Safety car, Insights menu, Telemetry panel.**
+- [x] **Phase 7 — Safety car, Insights menu, Telemetry panel.** Insights menu
+  (auto-opens) with driver telemetry, speed trace, tyre strategy, gaps to
+  leader, race control & weather; SC glow + fades on the map. Backend: gap to
+  leader (time at the same place), real tyre stints (15 Hard→Hard stops in
+  Australia), `/strategy` endpoint. Fixed: shortcuts dead after ticking a
+  checkbox. 65 pytest, 22 vitest; browser suites 20/20 and 16/16, stable.
+  *Learned:* chart design rules, palette validation & secondary encoding,
+  WCAG contrast, inverse interpolation, abort controllers, derived state,
+  canvas alpha.
 - [ ] **Phase 8 — Polish, deploy, resume.**
 
 ## Open questions

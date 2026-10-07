@@ -15,6 +15,7 @@ import { Legend } from "./Legend";
 import { StatusBanner } from "./StatusBanner";
 import { TopBar } from "./TopBar";
 import { TrackCanvas } from "./TrackCanvas";
+import { INSIGHTS_WIDTH, InsightsMenu } from "./InsightsMenu";
 import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
 
 export function ReplayView({ year, round }: { year: number; round: number }) {
@@ -22,6 +23,7 @@ export function ReplayView({ year, round }: { year: number; round: number }) {
   const [error, setError] = useState<string | null>(null);
   const connect = useReplayStore((s) => s.connect);
   const disconnect = useReplayStore((s) => s.disconnect);
+  const insightsOpen = useUiStore((s) => s.insightsOpen);
   useKeyboardShortcuts();
 
   useEffect(() => {
@@ -43,6 +45,7 @@ export function ReplayView({ year, round }: { year: number; round: number }) {
   useEffect(() => {
     if (!meta) return;
     useUiStore.getState().clearSelection();
+    useUiStore.setState({ insightsOpen: true }); // the menu launches with every replay
     connect(year, round);
     return () => disconnect();
   }, [meta, year, round, connect, disconnect]);
@@ -64,7 +67,8 @@ export function ReplayView({ year, round }: { year: number; round: number }) {
         [grid-template-areas:'top_top''track_side''bottom_side']">
         <TopBar meta={meta} />
         <section className="relative min-h-0 [grid-area:track]" aria-label="Track">
-          <TrackCanvas meta={meta} />
+          <TrackCanvas meta={meta} insetLeft={insightsOpen ? INSIGHTS_WIDTH : 0} />
+          <InsightsMenu meta={meta} />
           <StatusBanner />
           <Legend />
         </section>

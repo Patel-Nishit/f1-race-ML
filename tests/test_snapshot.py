@@ -96,3 +96,15 @@ def test_time_is_clamped():
 
 def test_lap_start_times():
     assert lap_start_times(make_race()) == [0.0, pytest.approx(1.0)]
+
+
+def test_gap_to_leader_is_time_at_the_same_place():
+    # Leader covers 0.1 lap per second; the chaser is 0.25 laps behind,
+    # i.e. where the leader was 2.5 s ago.
+    from src.snapshot import gap_to_leader
+    race = make_race()
+    t = race.arrays["t"]
+    race.arrays["progress"] = np.stack([t * 0.1, np.maximum(0, t * 0.1 - 0.25)], axis=1)
+    assert gap_to_leader(race, 3.0, race.arrays["progress"][30, 1]) == pytest.approx(2.5, abs=0.01)
+    snap = build_snapshot(race, 3.0)
+    assert snap["drivers"][0]["gap"] == 0.0

@@ -32,6 +32,17 @@ def lap_start_times(race) -> list:
     return starts
 
 
+def gap_to_leader(race, t: float, driver_progress: float) -> float:
+    """Seconds since the leader passed the point this driver is at now.
+
+    This is how F1 timing measures gaps: not distance, but time at the same
+    place on track. The leader's progress over time is monotonic, so we look
+    up when it reached `driver_progress`.
+    """
+    passed_at = float(np.interp(driver_progress, race.leader_progress, race.arrays["t"]))
+    return round(max(0.0, t - passed_at), 3)
+
+
 def build_snapshot(race, t: float) -> dict:
     a = race.arrays
     fps = race.meta["fps"]
@@ -87,6 +98,9 @@ def build_snapshot(race, t: float) -> dict:
     for row in drivers:
         behind = leader_progress - progress[index[row["code"]]]
         row["laps_down"] = int(max(0.0, math.floor(behind + LAPPED_TOLERANCE))) if not row["out"] else 0
+        row["gap"] = gap_to_leader(race, t, progress[index[row["code"]]]) if not row["out"] else None
+    if drivers:
+        drivers[0]["gap"] = 0.0 if not drivers[0]["out"] else None
 
     status = int(a["track_status"][i])
     sc_state = int(a["sc_state"][i])

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { shortcutFor, type KeyLike } from "./shortcuts";
+import { isTypingTarget, shortcutFor, type KeyLike } from "./shortcuts";
 import { lapTicks, neutralisedPeriods } from "./timeline";
 import { useUiStore } from "./uiStore";
 
@@ -22,6 +22,19 @@ describe("shortcuts", () => {
     expect(shortcutFor(key("x"))).toBeNull();
     expect(shortcutFor(key("r", { ctrlKey: true }))).toBeNull(); // Ctrl+R = reload
     expect(shortcutFor(key("l", { metaKey: true }))).toBeNull(); // Cmd+L = address bar
+  });
+});
+
+describe("isTypingTarget", () => {
+  it("blocks shortcuts only while typing text", () => {
+    expect(isTypingTarget({ tagName: "INPUT", type: "text" })).toBe(true);
+    expect(isTypingTarget({ tagName: "INPUT", type: "search" })).toBe(true);
+    expect(isTypingTarget({ tagName: "TEXTAREA" })).toBe(true);
+    expect(isTypingTarget({ tagName: "DIV", isContentEditable: true })).toBe(true);
+    // a ticked Insights checkbox keeps focus; shortcuts must still work
+    expect(isTypingTarget({ tagName: "INPUT", type: "checkbox" })).toBe(false);
+    expect(isTypingTarget({ tagName: "BUTTON" })).toBe(false);
+    expect(isTypingTarget(null)).toBe(false);
   });
 });
 

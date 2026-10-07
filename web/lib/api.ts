@@ -2,7 +2,7 @@
 //
 // NEXT_PUBLIC_ variables are inlined into the browser bundle at build time,
 // so set NEXT_PUBLIC_API_URL before `next build` when deploying.
-import type { PreparedRace, PrepareStatus, RaceMeta, SeasonEvent } from "./types";
+import type { PreparedRace, PrepareStatus, RaceMeta, SeasonEvent, Strategy, TelemetryWindow } from "./types";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
@@ -16,11 +16,13 @@ export class ApiError extends Error {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  if (init?.signal?.aborted) throw new DOMException("Aborted", "AbortError");
   let response: Response;
   try {
     response = await fetch(`${API_URL}${path}`, init);
-  } catch {
-    // fetch only rejects when the server can't be reached at all
+  } catch (e) {
+    if ((e as Error).name === "AbortError") throw e; // we cancelled it ourselves
+    // otherwise fetch only rejects when the server can't be reached at all
     throw new ApiError(0, `Can't reach the backend at ${API_URL}. Is "python main.py serve" running?`);
   }
   if (!response.ok) {
@@ -38,6 +40,12 @@ export const api = {
   prepare: (year: number, round: number) =>
     request<PrepareStatus>(`/api/races/${year}/${round}/prepare`, { method: "POST" }),
   meta: (year: number, round: number) => request<RaceMeta>(`/api/races/${year}/${round}/meta`),
+  strategy: (year: number, round: number) => request<Strategy>(`/api/races/${year}/${round}/strategy`),
+  telemetry: (year: number, round: number, code: string, start: number, end: number, maxPoints = 300,
+    signal?: AbortSignal) =>
+    request<TelemetryWindow>(
+      `/api/races/${year}/${round}/telemetry/${code}?start=${Math.max(0, start)}&end=${end}&max_points=${maxPoints}`,
+      { signal }),
 };
 
 export function replaySocketUrl(year: number, round: number, opts: { t?: number; speed?: number; autoplay?: boolean }) {

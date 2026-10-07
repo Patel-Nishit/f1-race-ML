@@ -55,6 +55,26 @@ export interface DriverState {
   brake: number;
   out: boolean;
   laps_down: number;
+  gap: number | null; // seconds behind the leader (0 for the leader, null if out)
+}
+
+export interface Stint {
+  compound: TyreCompound;
+  start_lap: number;
+  end_lap: number;
+}
+
+export type Strategy = Record<string, Stint[]>;
+
+/** One driver's telemetry over a time window, as columns (chart-friendly). */
+export interface TelemetryWindow {
+  code: string;
+  t: number[];
+  speed: number[];
+  throttle: number[];
+  brake: number[];
+  gear: number[];
+  drs_open: boolean[];
 }
 
 export interface SafetyCar {

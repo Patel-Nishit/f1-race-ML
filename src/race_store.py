@@ -11,7 +11,7 @@ Arrays shaped (frames, drivers) use the driver order in meta["drivers"].
 import json
 import os
 from dataclasses import dataclass
-from functools import lru_cache
+from functools import cached_property, lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -96,6 +96,16 @@ class RaceData:
             [self.meta["retirements"].get(code, np.inf) for code in self.codes]
         )[np.newaxis, :]
         return t >= t_out
+
+    @cached_property
+    def leader_progress(self) -> np.ndarray:
+        """(frames,) how far round the race the leader was at each frame.
+
+        Never decreases, so it can be "inverted": for any progress value p,
+        np.interp(p, leader_progress, t) answers "when did the leader get
+        there?", which is how gaps to the leader are timed.
+        """
+        return np.maximum.accumulate(self.arrays["progress"].max(axis=1))
 
     def frame_index(self, t: float) -> int:
         """Index of the frame at (or just before) replay time t seconds."""

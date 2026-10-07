@@ -89,11 +89,13 @@ def test_websocket_hello_and_frames(client):
 
 def test_websocket_commands_are_acknowledged(client):
     with client.websocket_connect("/ws/replay/2030/1?autoplay=false") as ws:
-        ws.receive_json(), ws.receive_json()
+        fields = ws.receive_json()["driver_fields"]
+        ws.receive_json()
         ws.send_json({"type": "seek", "t": 35, "id": 7})
         frame = frames_until(ws, lambda m: m.get("ack") == 7)
         assert frame["t"] == 35.0
-        out = {r[0]: r[-2] for r in frame["drivers"]}  # "out" is second-last
+        # look fields up by name (from hello), never by position
+        out = {r[0]: r[fields.index("out")] for r in frame["drivers"]}
         assert out == {"AAA": False, "BBB": False, "CCC": True}
 
         ws.send_json({"type": "speed", "value": 8, "id": 8})
@@ -165,3 +167,8 @@ def test_prepare_job_failure(data_dir):
     jobs.start(2030, 6)
     status = wait_for(jobs, 2030, 6)
     assert status["state"] == "error" and "no data" in status["error"]
+
+
+def test_strategy(client):
+    stints = client.get("/api/races/2030/1/strategy").json()
+    assert stints["AAA"] == [{"compound": "MEDIUM", "start_lap": 1, "end_lap": 3}]

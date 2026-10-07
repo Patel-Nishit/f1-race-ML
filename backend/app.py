@@ -18,6 +18,7 @@ from backend.replay import DRIVER_FIELDS
 from backend.ws import replay_socket
 from src.race_store import is_prepared, list_prepared, load_race_cached, race_paths
 from src.snapshot import lap_start_times
+from src.strategy import race_stints
 
 app = FastAPI(
     title="F1 Race Replay API",
@@ -147,6 +148,17 @@ async def driver_telemetry(
         "gear": a["gear"][rows, d].astype(int).tolist(),
         "drs_open": (a["drs"][rows, d] >= 10).tolist(),
     }
+
+
+@app.get("/api/races/{year}/{round_number}/strategy")
+async def tyre_strategy(year: int = Year, round_number: int = Round, session: SessionType = Session):
+    """Every driver's tyre stints for the whole race.
+
+    The client only draws stints up to the current lap, so nothing is spoiled.
+    """
+    _require_prepared(year, round_number, session)
+    race = await run_in_threadpool(load_race_cached, year, round_number, session)
+    return race_stints(race)
 
 
 @app.websocket("/ws/replay/{year}/{round_number}")

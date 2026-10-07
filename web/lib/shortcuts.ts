@@ -10,6 +10,20 @@ export type Action =
   | { kind: "insights" }
   | { kind: "clear-selection" };
 
+/**
+ * Should a key press be left alone because the user is typing? Only for
+ * fields that take text. A focused checkbox or button must NOT block
+ * shortcuts, or ticking an Insights checkbox would silently disable them.
+ */
+export function isTypingTarget(el: { tagName: string; isContentEditable?: boolean; type?: string } | null): boolean {
+  if (!el) return false;
+  if (el.isContentEditable) return true;
+  if (el.tagName === "TEXTAREA" || el.tagName === "SELECT") return true;
+  if (el.tagName !== "INPUT") return false;
+  const nonText = ["checkbox", "radio", "button", "submit", "reset", "range", "color", "file", "image"];
+  return !nonText.includes((el.type ?? "text").toLowerCase());
+}
+
 export interface KeyLike {
   key: string;
   shiftKey: boolean;

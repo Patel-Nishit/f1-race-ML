@@ -16,7 +16,7 @@ from src.snapshot import build_snapshot, lap_start_times
 # message size (measured: 1,546 vs 3,586 bytes). The client gets this list
 # once, in the "hello" message.
 DRIVER_FIELDS = ["code", "x", "y", "position", "lap", "tyre", "speed", "gear",
-                 "drs_open", "throttle", "brake", "out", "laps_down"]
+                 "drs_open", "throttle", "brake", "out", "laps_down", "gap"]
 
 
 class Command(BaseModel):

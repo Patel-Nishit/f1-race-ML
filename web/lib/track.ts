@@ -18,7 +18,9 @@ function rotate(x: number, y: number, cos: number, sin: number): [number, number
   return [x * cos - y * sin, x * sin + y * cos];
 }
 
-export function fitTrack(track: TrackMeta, width: number, height: number, padding = 40): Transform {
+/** insetLeft reserves space on the left (e.g. for the Insights column). */
+export function fitTrack(track: TrackMeta, width: number, height: number, padding = 40, insetLeft = 0): Transform {
+  width -= insetLeft;
   const angle = (track.rotation * Math.PI) / 180;
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
@@ -33,7 +35,7 @@ export function fitTrack(track: TrackMeta, width: number, height: number, paddin
     scale,
     cos,
     sin,
-    offsetX: width / 2 - ((minX + maxX) / 2) * scale,
+    offsetX: insetLeft + width / 2 - ((minX + maxX) / 2) * scale,
     offsetY: height / 2 + ((minY + maxY) / 2) * scale, // + because y is flipped
   };
 }

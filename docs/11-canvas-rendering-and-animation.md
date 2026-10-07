@@ -137,8 +137,31 @@ both apps show Jeddah the same way round, which confirms the flip is right.
 - **Click a car to select it:** each frame remembers where it drew every car;
   a click picks the nearest one within 14 px.
 
-Phase 7 adds the safety car's pulsing glow (canvas `shadowBlur` + a sine
-wave).
+## Added in phase 7: the safety car
+
+`drawSafetyCar()` in `TrackCanvas.tsx`:
+
+- **Pulsing glow:** brightness follows a sine wave,
+  `pulse = 0.5 + 0.5·sin(2π·1.2·t)` (1.2 pulses per second), driving both a
+  radial-gradient halo and the badge's `shadowBlur`. It's static if the OS
+  asks for reduced motion.
+- **Fade in and out:** the SC doesn't pop in or vanish. Its opacity eases
+  towards 1 or 0 each frame (`alpha += (target − alpha) · dt/0.3`), and while
+  fading out it stays at its last position. The badge also grows slightly as
+  it appears.
+- **Phase label:** "DEPLOYING" and "IN THIS LAP" are drawn under the badge,
+  from the state machine in `src/safety_car.py`.
+
+Measured in the browser: the solid badge disappears within 0.18 s of the
+period ending.
+
+**Testing lesson: the canvas is transparent.** Our pixel-counting test kept
+finding "safety-car amber" up to 1.3 s after it left, and a car-click test
+started clicking empty track. The cause: the canvas has no background (the
+dark colour is the page behind it), and `getImageData` returns colour and
+alpha separately. So a 95%-transparent wisp of glow reads as pure `#ffb000`
+with alpha ≈ 10. Checking the 4th channel (`alpha > 200`) fixed both tests;
+the app itself was right all along.
 
 ## Exercises
 

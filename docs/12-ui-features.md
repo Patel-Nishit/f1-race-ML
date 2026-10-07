@@ -2,8 +2,8 @@
 
 ![Web replay during the safety car](images/web-replay.png)
 
-Phase 6 turned the bare track into a full replay screen. Phase 7 adds the
-Insights menu and telemetry panel to this chapter.
+Phase 6 turned the bare track into a full replay screen; phase 7 added the
+Insights menu and its analysis tools (second half of this chapter).
 
 ## Layout: CSS grid with named areas
 
@@ -115,11 +115,94 @@ not just green unit tests.*
   Replacing them with "poll until the condition holds" made it pass 9 runs out
   of 9.
 
+## Phase 7: the Insights menu
+
+![Insights column](images/web-insights.png)
+
+A floating menu on the left of the track **opens automatically with every
+replay** (`I` or its header toggles it). Each tool is a checkbox; enabled
+tools appear as cards below it, and the track is re-fitted into the space
+beside the column (`fitTrack(..., insetLeft)`), so nothing hides the cars.
+
+| Tool | Component | Data source |
+|------|-----------|-------------|
+| Driver telemetry | `TelemetryPanel.tsx` | Live frames: speed, gear, DRS, lap, tyre, throttle/brake meters |
+| Speed trace | `SpeedTrace.tsx` | `GET .../telemetry/{code}`: last 60 s, refetched once per race-second |
+| Tyre strategy | `TyreStrategy.tsx` | `GET .../strategy`: stints, shown only up to the current lap |
+| Gaps to leader | `Leaderboard.tsx` | `gap` field in every frame |
+| Race control & weather | `RaceControl.tsx` | Status changes so far + weather in frames |
+
+### Gap to leader: measured the way F1 does it
+
+A gap isn't a distance, it's **time at the same place**: "how many seconds
+ago was the leader where this car is now?" The backend keeps the leader's
+progress over time (`RaceData.leader_progress`, made non-decreasing with
+`np.maximum.accumulate`) and inverts it with `np.interp`:
+
+```python
+passed_at = np.interp(driver_progress, race.leader_progress, race.arrays["t"])
+gap = t - passed_at
+```
+
+Saudi Arabia 2024 under the safety car: NOR leads, VER +2.1 s, HAM +2.8 s.
+The field is bunched, exactly as expected.
+
+### Tyre stints: use the right column
+
+![Tyre strategy](images/web-strategy.png)
+
+We first rebuilt stints from the per-frame tyre colour. That can't see a pit
+stop onto the *same* compound. FastF1's laps table has a `Stint` number, so
+the pipeline now saves real stints in `meta.json` (`src/strategy.py`). In
+Australia 2024, **15 drivers** made Hard → Hard stops that the colour-only
+version would have merged into one long stint. OCO even ran three Hard
+stints. The chart shows each stop as a 2 px gap between bars.
+
+**No spoilers:** the full strategy is known in advance, so `stintsSoFar()`
+drops stints that haven't started and cuts the current one at the driver's
+current lap.
+
+### Chart design (and the palette check)
+
+Both charts follow the data-visualisation rules we adopted:
+
+- **One y-axis.** The speed trace shows speed only; throttle and brake live
+  in the telemetry card. Two different scales on one chart mislead.
+- **Thin marks, quiet grid:** 2 px lines, 10 px bars (max 24 px), solid
+  hairline gridlines, and a 2 px surface gap between stints.
+- **Identity never by colour alone.** Teammates share a team colour (NOR and
+  PIA are both McLaren orange), so the second selected driver's line is
+  **dashed**, and there's a legend with line keys.
+- **Text in text colours.** Values and names are white/grey; the colour sits
+  on the line or bar next to them.
+- **A tooltip that enhances, never gates.** The crosshair snaps to the nearest
+  sample and lists *both* drivers (value first, name second); the same
+  numbers are in the legend and the telemetry cards.
+
+We ran the Pirelli compound colours through a palette validator on our dark
+panel. It flagged white (hard) and yellow (medium) as outside the ideal
+lightness band, soft vs intermediate as close for deuteranopes (ΔE 8.0), and
+wet blue at 2.87:1 contrast. Repainting tyres would confuse every F1 fan, so
+we kept the convention and added **secondary encoding**: a letter in every
+segment that fits one, a legend and a tooltip. Wet moved one step lighter
+(`#1a7fd0`, passes 3:1). The letter colour is chosen by measured WCAG contrast,
+which picks **black** on wet blue (4.99:1 vs 4.21:1 for white), contrary to
+intuition.
+
+### Bugs found while testing phase 7
+
+- **Ticking an Insights checkbox disabled every keyboard shortcut.** The
+  checkbox kept focus, and the shortcut hook ignored keys on *any* `<input>`.
+  Now only text-entry fields block shortcuts (`isTypingTarget()`, unit-tested).
+- **"(1 laps)"** in the stint tooltip, fixed with a tiny `lapCount()`.
+- A React lint rule caught `setState` called synchronously inside an effect
+  in the telemetry hook. The fix was to **derive** "loading" (`result.id !==
+  wanted`) instead of storing it.
+
 ## Exercises
 
-1. Add "Gap to leader" to the leaderboard: `(leader_progress − progress) ×
-   average lap time`. Where should it be computed, in the backend or the
-   client?
+1. Show the interval to the car ahead (not just the gap to the leader) on the
+   leaderboard. Which existing value makes this a one-liner?
 2. Show a small "PIT" tag when a car is in the pit lane. (Hint: the backend
    knows `PitInTime`/`PitOutTime` per lap.)
 3. Make the leaderboard collapsible on narrow screens.

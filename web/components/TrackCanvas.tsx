@@ -16,7 +16,7 @@ import type { RaceMeta } from "@/lib/types";
 const CAR_RADIUS = 7;
 const CLICK_RADIUS = 14; // generous, so cars are easy to click
 
-export function TrackCanvas({ meta }: { meta: RaceMeta }) {
+export function TrackCanvas({ meta, insetLeft = 0 }: { meta: RaceMeta; insetLeft?: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -26,6 +26,11 @@ export function TrackCanvas({ meta }: { meta: RaceMeta }) {
     let transform: Transform | null = null;
     let trackLayer: HTMLCanvasElement | null = null;
     let frameId = 0;
+    // The safety car fades in and out instead of popping, and keeps its last
+    // position while fading out after it leaves the data.
+    const sc = { x: 0, y: 0, alpha: 0, label: "" };
+    let lastTime = performance.now();
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     // where each car was drawn last frame, for click hit-testing
     let drawn: { code: string; x: number; y: number }[] = [];
 
@@ -33,7 +38,7 @@ export function TrackCanvas({ meta }: { meta: RaceMeta }) {
     // ("layer") and copy that image every frame: one drawImage call instead
     // of re-tracing ~700 points.
     function buildTrackLayer(width: number, height: number, dpr: number) {
-      transform = fitTrack(meta.track, width, height, 48);
+      transform = fitTrack(meta.track, width, height, 48, insetLeft);
       const layer = document.createElement("canvas");
       layer.width = width * dpr;
       layer.height = height * dpr;
@@ -126,16 +131,17 @@ export function TrackCanvas({ meta }: { meta: RaceMeta }) {
         ctx.fillText(car.code, car.x, car.y + dy);
       }
 
+      const now = performance.now();
+      const dt = (now - lastTime) / 1000;
+      lastTime = now;
+      const latestSc = useReplayStore.getState().buffer.latest?.sc;
       if (state.sc) {
-        const [x, y] = toScreen(transform, state.sc.x, state.sc.y);
-        ctx.fillStyle = "#ffb000";
-        ctx.fillRect(x - 11, y - 7, 22, 14);
-        ctx.fillStyle = "#000";
-        ctx.font = "bold 9px var(--font-titillium), sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText("SC", x, y + 0.5);
+        [sc.x, sc.y] = toScreen(transform, state.sc.x, state.sc.y);
+        sc.label = latestSc?.state === "DEPLOYING" ? "DEPLOYING" : latestSc?.state === "RETURNING" ? "IN THIS LAP" : "";
       }
+      // ease alpha towards 1 (visible) or 0 (gone) over ~0.3 s
+      sc.alpha += ((state.sc ? 1 : 0) - sc.alpha) * Math.min(1, dt / 0.3);
+      if (sc.alpha > 0.01) drawSafetyCar(ctx, sc, now, reduceMotion);
     };
     frameId = requestAnimationFrame(draw);
 
@@ -159,7 +165,54 @@ export function TrackCanvas({ meta }: { meta: RaceMeta }) {
       observer.disconnect();
       canvas.removeEventListener("click", onClick);
     };
-  }, [meta]);
+  }, [meta, insetLeft]);
 
   return <canvas ref={canvasRef} className="h-full w-full" aria-label={`Track map of ${meta.event_name}`} role="img" />;
+}
+
+/**
+ * The safety car: an amber badge with a glow that pulses 1.2 times a second
+ * (brightness follows a sine wave), scaled up slightly as it fades in.
+ */
+function drawSafetyCar(
+  ctx: CanvasRenderingContext2D,
+  sc: { x: number; y: number; alpha: number; label: string },
+  now: number,
+  reduceMotion: boolean,
+) {
+  const pulse = reduceMotion ? 1 : 0.5 + 0.5 * Math.sin((now / 1000) * 2 * Math.PI * 1.2);
+  const size = 0.7 + 0.3 * sc.alpha;
+  ctx.save();
+  ctx.globalAlpha = sc.alpha;
+  // halo
+  const halo = ctx.createRadialGradient(sc.x, sc.y, 4, sc.x, sc.y, 26 + 6 * pulse);
+  halo.addColorStop(0, `rgba(255, 176, 0, ${0.35 + 0.25 * pulse})`);
+  halo.addColorStop(1, "rgba(255, 176, 0, 0)");
+  ctx.fillStyle = halo;
+  ctx.beginPath();
+  ctx.arc(sc.x, sc.y, 32, 0, Math.PI * 2);
+  ctx.fill();
+  // badge with a pulsing glow
+  ctx.shadowColor = "#ffb000";
+  ctx.shadowBlur = 6 + 12 * pulse;
+  ctx.fillStyle = "#ffb000";
+  const w = 24 * size, h = 15 * size;
+  ctx.beginPath();
+  ctx.roundRect(sc.x - w / 2, sc.y - h / 2, w, h, 3);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = "#000";
+  ctx.font = `bold ${Math.round(10 * size)}px var(--font-titillium), sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("SC", sc.x, sc.y + 0.5);
+  if (sc.label) {
+    ctx.font = "bold 10px var(--font-titillium), sans-serif";
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "#101116";
+    ctx.strokeText(sc.label, sc.x, sc.y + 20);
+    ctx.fillStyle = "#ffb000";
+    ctx.fillText(sc.label, sc.x, sc.y + 20);
+  }
+  ctx.restore();
 }

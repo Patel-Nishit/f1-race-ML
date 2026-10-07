@@ -9,7 +9,7 @@ Arcade desktop app and a Next.js web app streamed over WebSockets.
 |---|---|
 | ![Desktop viewer](docs/images/desktop-safety-car.png) | ![Web replay](docs/images/web-replay.png) |
 
-**Status:** data pipeline, desktop viewer, streaming API and web replay HUD done (phases 1–6 of 8). See [docs/PROGRESS.md](docs/PROGRESS.md).
+**Status:** all features done (phases 1–7 of 8): replay, safety car, leaderboard, controls, legend, Insights, telemetry. Phase 8 = polish & deploy. See [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ## Quick start
 

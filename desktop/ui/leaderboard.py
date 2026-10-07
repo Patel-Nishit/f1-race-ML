@@ -49,6 +49,8 @@ class Leaderboard:
                 status, colour = f"+{d['laps_down']} LAP", theme.TEXT_DIM
             elif d["drs_open"]:
                 status, colour = "DRS", theme.DRS_ON
+            elif d.get("gap"):
+                status, colour = f"+{d['gap']:.1f}", theme.TEXT_DIM
             else:
                 status, colour = "", theme.TEXT_DIM
             if status:

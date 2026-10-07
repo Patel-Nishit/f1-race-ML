@@ -95,6 +95,8 @@ same way.
 - **Track outline and pit lane**: `src/track.py` (chapter 06).
 - **Safety car** position: `src/safety_car.py` (chapter 06).
 - **Weather**, sampled about once a minute, resampled onto the same timeline.
+- **Tyre stints**, from FastF1's `Stint` column (`src/strategy.py`), saved in
+  the JSON metadata (phase 7).
 
 ## 3. Load
 

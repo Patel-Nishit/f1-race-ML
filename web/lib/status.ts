@@ -13,6 +13,8 @@ export const TYRE_COLOURS: Record<string, string> = {
   MEDIUM: "#ffd200",
   HARD: "#ebebeb",
   INTERMEDIATE: "#43b02a",
-  WET: "#0067ad",
+  // Pirelli's wet blue (#0067ad) is too dark on our panel (2.87:1 contrast);
+  // one step lighter passes 3:1 and still reads as "wet blue".
+  WET: "#1a7fd0",
   UNKNOWN: "#808080",
 };

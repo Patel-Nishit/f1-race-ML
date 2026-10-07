@@ -6,14 +6,14 @@ import { fitTrack, toScreen } from "./track";
 import type { Frame, TrackMeta, WireFrame } from "./types";
 
 const FIELDS = ["code", "x", "y", "position", "lap", "tyre", "speed", "gear",
-  "drs_open", "throttle", "brake", "out", "laps_down"];
+  "drs_open", "throttle", "brake", "out", "laps_down", "gap"];
 
 function frame(t: number, x: number, extra: Partial<Frame> = {}): Frame {
   return {
     seq: Math.round(t * 10), ack: null, t, lap: 1, status: 1, playing: true, speed: 1,
     sc: null, weather: null,
     drivers: [{ code: "VER", x, y: 0, position: 1, lap: 1, tyre: "SOFT", speed: 300, gear: 8,
-      drs_open: false, throttle: 100, brake: 0, out: false, laps_down: 0 }],
+      drs_open: false, throttle: 100, brake: 0, out: false, laps_down: 0, gap: 0 }],
     ...extra,
   };
 }
@@ -23,7 +23,7 @@ describe("decodeFrame", () => {
     const wire: WireFrame = {
       type: "frame", seq: 1, ack: null, t: 600, lap: 7, status: 4, playing: true, speed: 1,
       weather: null, sc: [10, 20, "LEADING"],
-      drivers: [["VER", -3474.2, 18900.4, 1, 7, "MEDIUM", 286.8, 7, false, 100, 0, false, 0]],
+      drivers: [["VER", -3474.2, 18900.4, 1, 7, "MEDIUM", 286.8, 7, false, 100, 0, false, 0, 0]],
     };
     const f = decodeFrame(wire, FIELDS);
     expect(f.drivers[0]).toMatchObject({ code: "VER", x: -3474.2, position: 1, tyre: "MEDIUM", gear: 7 });
