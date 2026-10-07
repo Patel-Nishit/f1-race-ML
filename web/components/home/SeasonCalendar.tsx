@@ -4,9 +4,11 @@
 // races (with a live progress bar) and open the ready ones.
 import Link from "next/link";
 import { ArrowClockwiseIcon, ArrowRightIcon, DownloadSimpleIcon } from "@phosphor-icons/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { eventDate } from "@/lib/format";
+import { EASE_OUT, from } from "@/lib/motion";
 import type { PrepareStatus, SeasonEvent } from "@/lib/types";
 
 const FIRST_SEASON = 2018;
@@ -184,20 +186,34 @@ function RoundRow({ year, event, status, onPrepare, canPrepare }: {
   const state = status?.state ?? event.status;
   const upcoming = new Date(event.date) > new Date();
   const ready = state === "ready";
+  // one key per visible state, so only real changes (prepare, progress, ready) animate
+  const reduce = useReducedMotion();
+  const cellKey = state === "missing" ? (upcoming ? "upcoming" : canPrepare ? "prepare" : "demo") : state;
 
   return (
     <li className="grid grid-cols-[3rem_1fr_auto] items-center gap-4 rounded-ui px-3 py-3 transition-colors hover:bg-panel">
-      <span className={`font-mono text-2xl font-bold tabular-nums ${ready ? "text-f1-ink" : "text-faint"}`}>
+      <span className={`font-mono text-2xl font-bold tabular-nums transition-colors duration-300 ${ready ? "text-f1-ink" : "text-faint"}`}>
         {String(event.round_number).padStart(2, "0")}
       </span>
       <div className="min-w-0">
         <p className="truncate font-semibold leading-tight">{event.event_name}</p>
         <p className="text-sm text-dim">{event.country}, {eventDate(event.date).short}</p>
       </div>
-      <div className="flex justify-end">
+      {/* Status changes settle in from the right instead of swapping (plans/007).
+          initial={false}: page load and season switches show rows without animating. */}
+      <div className="relative flex justify-end">
+       <AnimatePresence mode="popLayout" initial={false}>
+        <motion.div
+          key={cellKey}
+          data-enter
+          className="flex origin-right justify-end"
+          initial={{ opacity: 0, transform: from("scale(0.96)", reduce) }}
+          animate={{ opacity: 1, transform: from("scale(1)", reduce), transition: { duration: 0.22, ease: EASE_OUT } }}
+          exit={{ opacity: 0, transition: { duration: 0.12, ease: EASE_OUT } }}
+        >
         {ready && (
           <Link href={`/replay/${year}/${event.round_number}`}
-            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-ui bg-f1 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-f1-hover">
+            className="pressable inline-flex items-center gap-1.5 whitespace-nowrap rounded-ui bg-f1 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-f1-hover">
             Watch replay <ArrowRightIcon size={14} weight="bold" aria-hidden="true" />
           </Link>
         )}
@@ -214,8 +230,9 @@ function RoundRow({ year, event, status, onPrepare, canPrepare }: {
         {state === "preparing" && (
           <div className="w-40" aria-live="polite">
             <div className="h-1.5 overflow-hidden rounded-[2px] bg-panel-light">
-              <div className="h-full bg-f1 transition-[width] duration-500"
-                style={{ width: `${Math.round((status?.progress ?? 0) * 100)}%` }} />
+              {/* scaleX, not width: transform skips layout (plans/005) */}
+              <div className="h-full w-full origin-left bg-f1 transition-transform duration-300 ease-out"
+                style={{ transform: `scaleX(${status?.progress ?? 0})` }} />
             </div>
             <p className="mt-1.5 truncate text-xs text-dim">{status?.stage || "Starting"}…</p>
           </div>
@@ -228,6 +245,8 @@ function RoundRow({ year, event, status, onPrepare, canPrepare }: {
             <button onClick={onPrepare} className="mt-1 text-sm font-semibold underline underline-offset-4">Try again</button>
           </div>
         )}
+        </motion.div>
+       </AnimatePresence>
       </div>
     </li>
   );

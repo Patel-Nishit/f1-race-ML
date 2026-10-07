@@ -10,7 +10,7 @@ export default function NotFound() {
         This page doesn&apos;t exist. The race you&apos;re after is probably in the calendar.
       </p>
       <Link href="/"
-        className="w-fit rounded-ui bg-f1 px-5 py-2 font-semibold text-white hover:bg-f1-hover">
+        className="pressable w-fit rounded-ui bg-f1 px-5 py-2 font-semibold text-white hover:bg-f1-hover">
         Back to races
       </Link>
     </main>

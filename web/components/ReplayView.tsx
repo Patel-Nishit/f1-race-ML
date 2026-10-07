@@ -77,7 +77,7 @@ export function ReplayView({ year, round }: { year: number; round: number }) {
       <main id="main" className="mx-auto flex min-h-[100dvh] max-w-xl flex-col justify-center gap-4 px-6">
         <h1 className="pb-1 text-3xl font-bold italic leading-[1.1]">No replay here yet.</h1>
         <p className="text-dim">{error}</p>
-        <Link href="/" className="w-fit rounded-ui bg-f1 px-5 py-2 font-semibold text-white hover:bg-f1-hover">
+        <Link href="/" className="pressable w-fit rounded-ui bg-f1 px-5 py-2 font-semibold text-white hover:bg-f1-hover">
           Back to races
         </Link>
       </main>

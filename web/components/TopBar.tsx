@@ -4,6 +4,8 @@
 // in the centre, playback state, connection and shortcuts on the right.
 import Link from "next/link";
 import { ArrowLeftIcon, KeyboardIcon, WifiSlashIcon } from "@phosphor-icons/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { DURATION, EASE_OUT, from } from "@/lib/motion";
 import { formatRaceTime } from "@/lib/format";
 import { useReplayStore } from "@/lib/replayStore";
 import { TRACK_STATUS } from "@/lib/status";
@@ -91,13 +93,27 @@ function ConnectionBadge() {
 export function ConnectionBanner() {
   const connection = useReplayStore((s) => s.connection);
   const detail = useReplayStore((s) => s.connectionDetail);
-  if (connection !== "reconnecting" && connection !== "failed") return null;
+  const down = connection === "reconnecting" || connection === "failed";
+  const reduce = useReducedMotion();
   return (
     <div className="pointer-events-none absolute inset-x-0 top-1/2 z-10 flex -translate-y-1/2 justify-center px-4">
-      <p role="status" className="glass flex items-center gap-2.5 px-4 py-2.5 text-sm">
-        <WifiSlashIcon size={18} className="text-f1-ink" aria-hidden="true" />
-        {connection === "failed" ? "The replay stream is unavailable." : `Connection lost, ${detail || "retrying"}.`}
-      </p>
+      {/* eases in and out instead of popping (plans/006); centred, so it scales from the centre */}
+      <AnimatePresence>
+        {down && (
+          <motion.p
+            key="connection-banner"
+            data-enter
+            role="status"
+            className="glass flex items-center gap-2.5 px-4 py-2.5 text-sm"
+            initial={{ opacity: 0, transform: from("scale(0.97)", reduce) }}
+            animate={{ opacity: 1, transform: from("scale(1)", reduce), transition: { duration: DURATION.small, ease: EASE_OUT } }}
+            exit={{ opacity: 0, transform: from("scale(0.98)", reduce), transition: { duration: DURATION.exit, ease: EASE_OUT } }}
+          >
+            <WifiSlashIcon size={18} className="text-f1-ink" aria-hidden="true" />
+            {connection === "failed" ? "The replay stream is unavailable." : `Connection lost, ${detail || "retrying"}.`}
+          </motion.p>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

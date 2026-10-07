@@ -275,3 +275,35 @@ tabs.
 - **Measure before trusting your eyes.** The scrolled tiles, the leaderboard
   rows and the stale colours were all confirmed by measuring (opacity,
   positions, computed styles), not by looking.
+
+## Motion pass: animate less, but better
+
+After the redesign, the motion went through an audit (`improve-animations`),
+a search for missing motion (`find-animation-opportunities`) and a review. The
+plans and results are in [`plans/`](../plans/README.md). The rules we followed:
+
+- **Should it animate at all?** Keyboard-triggered UI (the shortcuts popover,
+  the Insights collapse) stays instant. Data people read (gaps, speeds) never
+  moves for style. Most proposed animations were *rejected*.
+- **Strong curves, short durations.** One set of tokens
+  (`--ease-out: cubic-bezier(0.23, 1, 0.32, 1)` in CSS, `EASE_OUT` in
+  `lib/motion.ts`), UI under 300 ms, and exits faster than entrances.
+- **Animate only `transform` and `opacity`.** The safety-car banner used to
+  repaint a `box-shadow` every frame for minutes; now its glow is drawn once and
+  only its opacity pulses. The progress bar grows with `scaleX`, not `width`.
+- **Feedback everywhere it's expected.** Links that look like buttons now dip
+  on press like real buttons.
+- **Two additions, both earned:** the connection-lost banner eases in and
+  out, and a race finishing preparation settles in as "Watch replay" instead
+  of swapping silently.
+
+Two bugs the review caught, by **measuring**, not by looking:
+
+1. When one banner replaced another (VSC to VSC ENDING), both rendered side by
+   side for a moment and jumped sideways. `AnimatePresence mode="wait"` fixed it.
+2. Switching to compositor-friendly `transform` strings silently broke reduced
+   motion, because Motion's setting only recognises its own shorthands. Even
+   after fixing that in JavaScript, a test failed *sometimes*: the
+   server-rendered first paint can't know the visitor's setting. A CSS rule
+   (`[data-enter] { transform: none !important }` under
+   `prefers-reduced-motion`) covers it from the first frame.

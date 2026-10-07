@@ -67,3 +67,23 @@ def test_all_twenty_drivers_fit_in_the_tower(page):
     box = page.get_by_role("complementary", name="Leaderboard").bounding_box()
     last = rows.nth(19).bounding_box()
     assert last["y"] + last["height"] <= box["y"] + box["height"], "the 20th row should be visible without scrolling"
+
+
+@pytest.mark.parametrize("reduce", [False, True])
+def test_entrances_respect_reduced_motion(browser, reduce):
+    """Entrances animate raw transform strings (compositor-friendly), which
+    Motion's reducedMotion setting doesn't strip, so components handle it
+    themselves (lib/motion.ts `from`). Normal: the hero rises. Reduced: it
+    only fades, with no movement."""
+    page = browser.new_page(viewport={"width": 1440, "height": 900},
+                            reduced_motion="reduce" if reduce else "no-preference")
+    page.goto(f"{WEB}/")
+    h1 = page.locator("h1")
+    h1.wait_for()
+    transforms = []
+    for _ in range(10):
+        transforms.append(h1.evaluate("e => getComputedStyle(e).transform"))
+        page.wait_for_timeout(30)
+    moved = any(t not in ("none", "matrix(1, 0, 0, 1, 0, 0)") for t in transforms)
+    page.close()
+    assert moved is not reduce, transforms

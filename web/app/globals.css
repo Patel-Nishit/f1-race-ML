@@ -92,6 +92,12 @@
   --color-ok: var(--ok);
   --color-ok-ink: var(--ok-ink);
   --radius-ui: var(--radius);
+  /* Motion tokens (plans/001). Overriding --ease-out also upgrades
+     Tailwind's ease-out utility; the defaults apply to every transition-*. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);       /* strong ease-out for UI */
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);   /* strong ease-in-out for on-screen movement */
+  --default-transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+  --default-transition-duration: 160ms;
   --font-sans: var(--font-titillium);
   --font-mono: var(--font-geist-mono);
 }
@@ -128,7 +134,7 @@ body > * {
   button:not(:disabled) {
     transition-property: color, background-color, border-color, opacity, transform, box-shadow;
     transition-duration: 160ms;
-    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    transition-timing-function: var(--ease-out);
   }
   button:not(:disabled):active {
     transform: scale(0.97);
@@ -165,6 +171,24 @@ body > * {
   }
 }
 
+/* Press feedback for links that look like buttons (buttons get it from the
+   base layer). Tiles move less: a big card dipping 3% is too much (plans/004). */
+@utility pressable {
+  transition-property: transform, background-color, border-color, color;
+  transition-duration: 160ms;
+  transition-timing-function: var(--ease-out);
+  &:active { transform: scale(0.97); }
+  @media (prefers-reduced-motion: reduce) {
+    &:active { transform: none; }
+  }
+}
+@utility pressable-soft {
+  &:active { transform: translateY(-1px) scale(0.99); }
+  @media (prefers-reduced-motion: reduce) {
+    &:active { transform: none; }
+  }
+}
+
 /* Skip link: hidden until focused with the keyboard. */
 .skip-link {
   position: absolute;
@@ -181,12 +205,24 @@ body > * {
   top: 12px;
 }
 
-/* Pulsing glow for status banners (colour comes from the --glow variable) */
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--glow) 60%, transparent); }
-  50% { box-shadow: 0 0 22px 6px color-mix(in srgb, var(--glow) 45%, transparent); }
+/* Pulsing glow for status banners (colour comes from the --glow variable).
+   The glow is drawn once on a pseudo-element and only its opacity animates,
+   so the browser composites it instead of repainting a box-shadow every
+   frame for the minutes a safety car is out (plans/002). */
+.animate-pulse-glow { position: relative; isolation: isolate; }
+.animate-pulse-glow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  box-shadow: 0 0 22px 6px color-mix(in srgb, var(--glow) 55%, transparent);
+  animation: pulse-opacity 1.6s var(--ease-in-out) infinite;
 }
-.animate-pulse-glow { animation: pulse-glow 1.6s ease-in-out infinite; }
+@keyframes pulse-opacity {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 1; }
+}
 
 /* Skeleton shimmer for loading states */
 @keyframes shimmer {
@@ -202,6 +238,11 @@ body > * {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-pulse-glow, .skeleton { animation: none; }
+  /* Entrances marked data-enter only fade. The server can't know this
+     setting, so the first HTML may carry a starting transform; CSS applies
+     from the first paint, before React hydrates (lib/motion.ts `from`). */
+  [data-enter] { transform: none !important; }
+  .skeleton { animation: none; }
+  .animate-pulse-glow::after { animation: none; opacity: 0.6; } /* steady glow, no pulse */
   button:not(:disabled):active { transform: none; }
 }

@@ -7,6 +7,7 @@ import { ArrowRightIcon, WarningCircleIcon } from "@phosphor-icons/react";
 import { MotionConfig, motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
+import { EASE_OUT, from } from "@/lib/motion";
 import { useReplayStore } from "@/lib/replayStore";
 import type { PreparedRace, RaceMeta } from "@/lib/types";
 import { useUiStore } from "@/lib/uiStore";
@@ -14,7 +15,6 @@ import { TrackCanvas } from "../TrackCanvas";
 import { SeasonCalendar } from "./SeasonCalendar";
 import { TrackOutline } from "./TrackOutline";
 
-const EASE = [0.16, 1, 0.3, 1] as const;
 
 interface ReadyRace extends PreparedRace {
   meta: RaceMeta;
@@ -55,10 +55,14 @@ export function HomeView() {
 }
 
 function Hero({ featured, loading, error }: { featured: ReadyRace | null; loading: boolean; error: string | null }) {
+  const reduce = useReducedMotion();
   const enter = (delay: number) => ({
-    initial: { opacity: 0, y: 16 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.6, delay, ease: EASE },
+    "data-enter": true,
+    // full transform strings run on the compositor; Motion's y shorthand runs on
+    // the main thread, which is busy here (canvas, socket, fetches) (plans/003)
+    initial: { opacity: 0, transform: from("translateY(16px)", reduce) },
+    animate: { opacity: 1, transform: from("translateY(0px)", reduce) },
+    transition: { duration: 0.6, delay, ease: EASE_OUT },
   });
   return (
     <section className="mx-auto grid w-full max-w-[1400px] items-center gap-10 px-4 pb-16 pt-8 md:px-8 md:pt-16 lg:grid-cols-12">
@@ -73,7 +77,7 @@ function Hero({ featured, loading, error }: { featured: ReadyRace | null; loadin
         <motion.div {...enter(0.16)} className="mt-8 flex items-center gap-4">
           {featured ? (
             <Link href={`/replay/${featured.year}/${featured.round}`}
-              className="group inline-flex items-center gap-2 whitespace-nowrap rounded-ui bg-f1 px-6 py-3 font-semibold text-white hover:bg-f1-hover">
+              className="pressable group inline-flex items-center gap-2 whitespace-nowrap rounded-ui bg-f1 px-6 py-3 font-semibold text-white hover:bg-f1-hover">
               Watch replay
               <ArrowRightIcon size={18} weight="bold" aria-hidden="true"
                 className="transition-transform group-hover:translate-x-0.5" />
@@ -157,20 +161,22 @@ function ReadyToWatch({ races }: { races: ReadyRace[] | null }) {
 }
 
 function RaceTile({ race, index, large }: { race: ReadyRace; index: number; large: boolean }) {
+  const reduce = useReducedMotion();
   // a subtle tint that moves per tile, so the bento isn't a wall of identical cards
   const tint = ["at_85%_15%", "at_15%_85%", "at_80%_80%", "at_20%_20%"][index % 4];
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      data-enter
+      initial={{ opacity: 0, transform: from("translateY(20px)", reduce) }}
+      whileInView={{ opacity: 1, transform: from("translateY(0px)", reduce) }}
       viewport={{ once: true, amount: 0.15 }}
-      transition={{ duration: 0.5, delay: index * 0.07, ease: EASE }}
+      transition={{ duration: 0.5, delay: index * 0.07, ease: EASE_OUT }}
       className={large ? "md:col-span-2 md:row-span-2" : ""}
     >
       <Link
         href={`/replay/${race.year}/${race.round}`}
         aria-label={`Watch replay: ${race.event_name} ${race.year}`}
-        className="group relative flex h-full min-h-56 flex-col justify-between overflow-hidden rounded-ui border border-line bg-panel p-6 transition-[transform,border-color] duration-200 hover:-translate-y-0.5 hover:border-f1 motion-reduce:hover:translate-y-0"
+        className="pressable-soft group relative flex h-full min-h-56 flex-col justify-between overflow-hidden rounded-ui border border-line bg-panel p-6 transition-[transform,border-color] duration-200 hover:-translate-y-0.5 hover:border-f1 motion-reduce:hover:translate-y-0"
         style={{ backgroundImage: `radial-gradient(circle ${tint.replace(/_/g, " ")}, color-mix(in srgb, var(--accent) ${large ? 11 : 6}%, transparent), transparent 55%)` }}
       >
         <TrackOutline track={race.meta.track} strokeWidth={large ? 3.5 : 3}
