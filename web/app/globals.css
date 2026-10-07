@@ -1,24 +1,184 @@
 @import "tailwindcss";
 
-/* Design tokens: same palette as the desktop app (desktop/theme.py) */
+/*
+ * "Pit wall" design system. See docs/REDESIGN_PLAN.md.
+ *
+ * Contrast: every text/background pair is checked to WCAG AA (4.5:1) in both
+ * themes; red text uses --accent-ink, red fills use --accent.
+ *
+ * Colour: every colour is a CSS variable with a dark and a light value,
+ * switched by the visitor's system setting (prefers-color-scheme). Canvas
+ * and chart code read the same variables, so both themes reach them too.
+ *
+ * Shape rule (the only shapes in the app):
+ *   - panels and controls: --radius (6px)
+ *   - slanted chips (positions, track status, lap bug): .chip-slant, skewed -12deg
+ *   - tyre badges: fully round (they are tyres)
+ */
+
+:root {
+  color-scheme: dark;
+  --bg: #0c0d11;
+  --surface: #15171d;
+  --surface-2: #1e2129;
+  --line: #2a2e38;
+  --ink: #eceef2;
+  --ink-2: #9aa0ad;
+  --ink-3: #878d9c;
+  --accent: #e3261e;
+  --accent-ink: #ff5a50; /* red as text: lighter so it passes 4.5:1 on dark panels */
+  --accent-hover: #f0352c;
+  --on-accent: #ffffff;
+  --sc: #ffb000;
+  --sc-ink: #ffb000;
+  --ok: #1fb35c;
+  --ok-ink: #1fb35c;
+  --track-edge: #6e7282;
+  --track: #464a58;
+  --car-stroke: #000000;
+  --tag-ink: #ffffff;
+  --tag-halo: #101116;
+  --glass: rgb(21 23 29 / 0.78);
+  --glass-edge: rgb(255 255 255 / 0.07);
+  --shadow: 0 10px 30px rgb(0 0 0 / 0.45);
+  --grain-opacity: 0.05;
+  --radius: 6px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+    --bg: #eef0f3;
+    --surface: #ffffff;
+    --surface-2: #f4f5f8;
+    --line: #d9dde3;
+    --ink: #14161b;
+    --ink-2: #555c68;
+    --ink-3: #676d79;
+    --accent: #d21f17;
+    --accent-ink: #d21f17;
+    --accent-hover: #b81a13;
+    --on-accent: #ffffff;
+    --sc: #ffb000;
+    --sc-ink: #8a5f00;
+    --ok: #13874a;
+    --ok-ink: #0f6e3c;
+    --track-edge: #7f8692;
+    --track: #c9ced6;
+    --car-stroke: #14161b;
+    --tag-ink: #14161b;
+    --tag-halo: #ffffff;
+    --glass: rgb(255 255 255 / 0.86);
+    --glass-edge: rgb(20 22 27 / 0.08);
+    --shadow: 0 10px 30px rgb(40 52 80 / 0.14);
+    --grain-opacity: 0.035;
+  }
+}
+
+/* Tailwind colour names used across the components (bg-panel, text-ink...). */
 @theme inline {
-  --color-bg: #101116;
-  --color-panel: #1a1c24;
-  --color-panel-light: #262934;
-  --color-line: #3a3e4c;
-  --color-ink: #ecedf2;
-  --color-dim: #969aaa;
-  --color-faint: #5f6373;
-  --color-f1: #e10600;
-  --color-sc: #ffb000;
-  --color-ok: #00aa50;
+  --color-bg: var(--bg);
+  --color-panel: var(--surface);
+  --color-panel-light: var(--surface-2);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-dim: var(--ink-2);
+  --color-faint: var(--ink-3);
+  --color-f1: var(--accent);
+  --color-f1-hover: var(--accent-hover);
+  --color-f1-ink: var(--accent-ink);
+  --color-sc: var(--sc);
+  --color-sc-ink: var(--sc-ink);
+  --color-ok: var(--ok);
+  --color-ok-ink: var(--ok-ink);
+  --radius-ui: var(--radius);
   --font-sans: var(--font-titillium);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
-  background: var(--color-bg);
-  color: var(--color-ink);
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* A very faint grain on the page background only: fixed, never scrolls,
+   never catches the mouse, so it costs nothing while scrolling. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+body > * {
+  position: relative;
+  z-index: 1;
+}
+
+@layer base {
+  /* Keyboard focus is always visible; mouse clicks don't show it. */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  /* Pressed feedback for every button. */
+  button:not(:disabled) {
+    transition-property: color, background-color, border-color, opacity, transform, box-shadow;
+    transition-duration: 160ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  button:not(:disabled):active {
+    transform: scale(0.97);
+  }
+}
+
+/* Slanted chip: the one signature shape, from F1 broadcast graphics. The
+   container leans; put the text in a child with .chip-slant-text so it stays
+   upright. */
+.chip-slant {
+  transform: skewX(-12deg);
+  border-radius: 3px;
+}
+.chip-slant-text {
+  display: inline-block;
+  transform: skewX(12deg);
+}
+
+/* Floating panel over the track: translucent in dark mode with a 1px inner
+   highlight, solid when the system asks for less transparency. */
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: inset 0 1px 0 var(--glass-edge), var(--shadow);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    background: var(--surface);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* Skip link: hidden until focused with the keyboard. */
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -48px;
+  z-index: 50;
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+.skip-link:focus {
+  top: 12px;
 }
 
 /* Pulsing glow for status banners (colour comes from the --glow variable) */
@@ -28,6 +188,20 @@ body {
 }
 .animate-pulse-glow { animation: pulse-glow 1.6s ease-in-out infinite; }
 
+/* Skeleton shimmer for loading states */
+@keyframes shimmer {
+  from { background-position: -200px 0; }
+  to { background-position: calc(200px + 100%) 0; }
+}
+.skeleton {
+  border-radius: var(--radius);
+  background: linear-gradient(90deg, var(--surface-2) 0, var(--line) 50%, var(--surface-2) 100%) no-repeat;
+  background-size: 200px 100%;
+  background-color: var(--surface-2);
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-pulse-glow { animation: none; }
+  .animate-pulse-glow, .skeleton { animation: none; }
+  button:not(:disabled):active { transform: none; }
 }

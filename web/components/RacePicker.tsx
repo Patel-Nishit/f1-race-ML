@@ -142,7 +142,7 @@ function EventCard({ year, event, status, onPrepare, canPrepare }: {
         {state === "ready" && (
           <Link
             href={`/replay/${year}/${event.round_number}`}
-            className="inline-block rounded bg-f1 px-4 py-1.5 text-sm font-bold text-white hover:bg-red-700"
+            className="inline-block rounded bg-f1 px-4 py-1.5 text-sm font-bold text-white hover:bg-f1-hover"
           >
             Watch replay
           </Link>

@@ -49,7 +49,8 @@ export function TelemetryPanel({ drivers }: { drivers: DriverMeta[] }) {
                     <Meter label="Throttle" value={d.throttle} colour="#00c85a" />
                     <Meter label="Brake" value={d.brake} colour="#e62828" />
                     <p className="mt-1 text-xs text-dim">
-                      Tyre <span className="font-bold" style={{ color: TYRE_COLOURS[d.tyre] }}>●</span>{" "}
+                      Tyre <span aria-hidden="true" className="mx-0.5 inline-block h-2 w-2 rounded-full align-middle"
+                        style={{ background: TYRE_COLOURS[d.tyre] }} />{" "}
                       {d.tyre.toLowerCase()}
                     </p>
                   </>

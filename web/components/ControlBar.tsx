@@ -8,8 +8,9 @@ import { TRACK_STATUS } from "@/lib/status";
 import { lapTicks, neutralisedPeriods } from "@/lib/timeline";
 import type { Command, RaceMeta } from "@/lib/types";
 import {
-  BackIcon, ForwardIcon, MinusIcon, NextLapIcon, PauseIcon, PlayIcon, PlusIcon, PrevLapIcon, RestartIcon,
-} from "./icons";
+  ArrowCounterClockwiseIcon, MinusIcon, PauseIcon, PlayIcon, PlusIcon, RewindIcon, FastForwardIcon,
+  SkipBackIcon, SkipForwardIcon,
+} from "@phosphor-icons/react";
 
 export function ControlBar({ meta }: { meta: RaceMeta }) {
   const send = useReplayStore((s) => s.send);
@@ -22,7 +23,7 @@ export function ControlBar({ meta }: { meta: RaceMeta }) {
       aria-label={label}
       title={`${label} (${keys})`}
       className={`flex h-9 w-11 items-center justify-center rounded transition-colors ${
-        main ? "bg-f1 text-white hover:bg-red-700" : "bg-panel-light text-ink hover:bg-line"}`}
+        main ? "bg-f1 text-white hover:bg-f1-hover" : "bg-panel-light text-ink hover:bg-line"}`}
     >
       {icon}
     </button>
@@ -32,19 +33,19 @@ export function ControlBar({ meta }: { meta: RaceMeta }) {
     <footer className="border-t border-line/60 bg-panel px-5 pb-3 pt-2 [grid-area:bottom]">
       <Timeline meta={meta} />
       <div className="mt-2 flex items-center justify-center gap-2">
-        {button("Restart", "R", { type: "restart" }, <RestartIcon />)}
-        {button("Previous lap", "Shift+←", { type: "skip_laps", value: -1 }, <PrevLapIcon />)}
-        {button(`Back ${SKIP_SECONDS} seconds`, "←", { type: "skip", value: -SKIP_SECONDS }, <BackIcon />)}
+        {button("Restart", "R", { type: "restart" }, <ArrowCounterClockwiseIcon size={18} weight="bold" />)}
+        {button("Previous lap", "Shift+←", { type: "skip_laps", value: -1 }, <SkipBackIcon size={18} weight="fill" />)}
+        {button(`Back ${SKIP_SECONDS} seconds`, "←", { type: "skip", value: -SKIP_SECONDS }, <RewindIcon size={18} weight="fill" />)}
         {button(playing ? "Pause" : "Play", "Space", { type: "toggle" },
-          playing ? <PauseIcon className="h-5 w-5" /> : <PlayIcon className="h-5 w-5" />, true)}
-        {button(`Forward ${SKIP_SECONDS} seconds`, "→", { type: "skip", value: SKIP_SECONDS }, <ForwardIcon />)}
-        {button("Next lap", "Shift+→", { type: "skip_laps", value: 1 }, <NextLapIcon />)}
+          playing ? <PauseIcon size={20} weight="fill" /> : <PlayIcon size={20} weight="fill" />, true)}
+        {button(`Forward ${SKIP_SECONDS} seconds`, "→", { type: "skip", value: SKIP_SECONDS }, <FastForwardIcon size={18} weight="fill" />)}
+        {button("Next lap", "Shift+→", { type: "skip_laps", value: 1 }, <SkipForwardIcon size={18} weight="fill" />)}
         <span className="mx-2 h-6 w-px bg-line" />
-        {button("Slower", "↓", { type: "slower" }, <MinusIcon />)}
+        {button("Slower", "↓", { type: "slower" }, <MinusIcon size={18} weight="bold" />)}
         <span className="w-12 text-center font-mono text-sm font-bold tabular-nums" aria-label="Playback speed">
           {speed}×
         </span>
-        {button("Faster", "↑", { type: "faster" }, <PlusIcon />)}
+        {button("Faster", "↑", { type: "faster" }, <PlusIcon size={18} weight="bold" />)}
       </div>
     </footer>
   );
@@ -97,7 +98,7 @@ function Timeline({ meta }: { meta: RaceMeta }) {
         {neutralisedPeriods(meta.track_status_changes, duration).map((s) => (
           <div key={s.start} className="absolute top-1/2 h-2 -translate-y-1/2 rounded-sm opacity-80"
             style={{ left: pct(s.start), width: pct(s.end - s.start), background: TRACK_STATUS[s.status].color }}
-            title={`${TRACK_STATUS[s.status].label} ${formatRaceTime(s.start)}–${formatRaceTime(s.end)}`} />
+            title={`${TRACK_STATUS[s.status].label} ${formatRaceTime(s.start)} to ${formatRaceTime(s.end)}`} />
         ))}
         {lapTicks(meta.lap_starts).map(({ lap, t: lt }) => (
           <div key={lap} className="absolute top-1/2 h-3 w-px -translate-y-1/2 bg-line" style={{ left: pct(lt) }}

@@ -1,5 +1,6 @@
 "use client";
 
+import { XIcon } from "@phosphor-icons/react";
 import { SHORTCUTS } from "@/lib/shortcuts";
 import { TYRE_COLOURS } from "@/lib/status";
 import { useUiStore } from "@/lib/uiStore";
@@ -21,7 +22,9 @@ export function Legend() {
       className="absolute bottom-3 right-3 w-[22rem] rounded-lg border border-line bg-panel/95 p-4 text-sm shadow-xl">
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-xs font-bold tracking-wider text-dim">CONTROLS</h2>
-        <button onClick={toggle} aria-label="Close legend" className="text-dim hover:text-ink">✕</button>
+        <button onClick={toggle} aria-label="Close legend" className="rounded p-1 text-dim hover:text-ink">
+          <XIcon size={16} weight="bold" aria-hidden="true" />
+        </button>
       </div>
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
         {SHORTCUTS.map(([keys, action]) => (

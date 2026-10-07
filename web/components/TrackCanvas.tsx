@@ -9,6 +9,7 @@
 import { useEffect, useRef } from "react";
 import { interpolate } from "@/lib/interpolate";
 import { useReplayStore } from "@/lib/replayStore";
+import { onThemeChange, readTheme, type CanvasTheme } from "@/lib/theme";
 import { useUiStore } from "@/lib/uiStore";
 import { fitTrack, toScreen, type Transform } from "@/lib/track";
 import type { RaceMeta } from "@/lib/types";
@@ -26,6 +27,8 @@ export function TrackCanvas({ meta, insetLeft = 0 }: { meta: RaceMeta; insetLeft
     let transform: Transform | null = null;
     let trackLayer: HTMLCanvasElement | null = null;
     let frameId = 0;
+    // colours come from the CSS theme (dark or light), re-read if it flips
+    let theme: CanvasTheme = readTheme();
     // The safety car fades in and out instead of popping, and keeps its last
     // position while fading out after it leaves the data.
     const sc = { x: 0, y: 0, alpha: 0, label: "" };
@@ -52,15 +55,15 @@ export function TrackCanvas({ meta, insetLeft = 0 }: { meta: RaceMeta; insetLeft
         else lc.lineTo(sx, sy);
       });
       lc.closePath();
-      lc.strokeStyle = "#6e7282";
+      lc.strokeStyle = theme.trackEdge;
       lc.lineWidth = 14;
       lc.stroke();
-      lc.strokeStyle = "#464a58";
+      lc.strokeStyle = theme.track;
       lc.lineWidth = 10;
       lc.stroke();
       // start/finish
       const [fx, fy] = toScreen(transform, meta.track.x[0], meta.track.y[0]);
-      lc.fillStyle = "#ecedf2";
+      lc.fillStyle = theme.ink;
       lc.beginPath();
       lc.arc(fx, fy, 3, 0, Math.PI * 2);
       lc.fill();
@@ -78,6 +81,11 @@ export function TrackCanvas({ meta, insetLeft = 0 }: { meta: RaceMeta; insetLeft
     };
     const observer = new ResizeObserver(resize);
     observer.observe(canvas);
+    // system switched light/dark: new colours, and redraw the static track layer
+    const stopThemeWatch = onThemeChange(() => {
+      theme = readTheme();
+      resize();
+    });
 
     const draw = () => {
       frameId = requestAnimationFrame(draw);
@@ -101,10 +109,12 @@ export function TrackCanvas({ meta, insetLeft = 0 }: { meta: RaceMeta; insetLeft
         if (selected.includes(car.code)) {
           ctx.beginPath();
           ctx.arc(x, y, CAR_RADIUS + 5, 0, Math.PI * 2);
-          ctx.fillStyle = "rgba(255,255,255,0.3)";
+          ctx.globalAlpha = 0.3;
+          ctx.fillStyle = theme.tagInk;
           ctx.fill();
+          ctx.globalAlpha = 1;
           ctx.lineWidth = 2;
-          ctx.strokeStyle = "#fff";
+          ctx.strokeStyle = theme.tagInk;
           ctx.stroke();
         }
         ctx.beginPath();
@@ -112,7 +122,7 @@ export function TrackCanvas({ meta, insetLeft = 0 }: { meta: RaceMeta; insetLeft
         ctx.fillStyle = colours.get(car.code) ?? "#888";
         ctx.fill();
         ctx.lineWidth = 1.5;
-        ctx.strokeStyle = "#000";
+        ctx.strokeStyle = theme.carStroke;
         ctx.stroke();
       }
 
@@ -125,9 +135,9 @@ export function TrackCanvas({ meta, insetLeft = 0 }: { meta: RaceMeta; insetLeft
         if (slot < 0) continue;
         const dy = slot === 1 ? CAR_RADIUS + 12 : -(CAR_RADIUS + 12);
         ctx.lineWidth = 3;
-        ctx.strokeStyle = "#101116";
+        ctx.strokeStyle = theme.tagHalo;
         ctx.strokeText(car.code, car.x, car.y + dy);
-        ctx.fillStyle = "#fff";
+        ctx.fillStyle = theme.tagInk;
         ctx.fillText(car.code, car.x, car.y + dy);
       }
 
@@ -141,7 +151,7 @@ export function TrackCanvas({ meta, insetLeft = 0 }: { meta: RaceMeta; insetLeft
       }
       // ease alpha towards 1 (visible) or 0 (gone) over ~0.3 s
       sc.alpha += ((state.sc ? 1 : 0) - sc.alpha) * Math.min(1, dt / 0.3);
-      if (sc.alpha > 0.01) drawSafetyCar(ctx, sc, now, reduceMotion);
+      if (sc.alpha > 0.01) drawSafetyCar(ctx, sc, now, reduceMotion, theme);
     };
     frameId = requestAnimationFrame(draw);
 
@@ -163,6 +173,7 @@ export function TrackCanvas({ meta, insetLeft = 0 }: { meta: RaceMeta; insetLeft
     return () => {
       cancelAnimationFrame(frameId);
       observer.disconnect();
+      stopThemeWatch();
       canvas.removeEventListener("click", onClick);
     };
   }, [meta, insetLeft]);
@@ -179,6 +190,7 @@ function drawSafetyCar(
   sc: { x: number; y: number; alpha: number; label: string },
   now: number,
   reduceMotion: boolean,
+  theme: CanvasTheme,
 ) {
   const pulse = reduceMotion ? 1 : 0.5 + 0.5 * Math.sin((now / 1000) * 2 * Math.PI * 1.2);
   const size = 0.7 + 0.3 * sc.alpha;
@@ -209,9 +221,9 @@ function drawSafetyCar(
   if (sc.label) {
     ctx.font = "bold 10px var(--font-titillium), sans-serif";
     ctx.lineWidth = 3;
-    ctx.strokeStyle = "#101116";
+    ctx.strokeStyle = theme.tagHalo;
     ctx.strokeText(sc.label, sc.x, sc.y + 20);
-    ctx.fillStyle = "#ffb000";
+    ctx.fillStyle = theme.scInk;
     ctx.fillText(sc.label, sc.x, sc.y + 20);
   }
   ctx.restore();

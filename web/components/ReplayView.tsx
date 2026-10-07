@@ -52,18 +52,18 @@ export function ReplayView({ year, round }: { year: number; round: number }) {
 
   if (error) {
     return (
-      <main className="flex flex-1 flex-col items-center justify-center gap-3 p-10 text-center">
+      <main id="main" className="flex flex-1 flex-col items-center justify-center gap-3 p-10 text-center">
         <p className="text-dim">{error}</p>
         <Link href="/" className="font-semibold underline">Back to races</Link>
       </main>
     );
   }
-  if (!meta) return <main className="flex flex-1 items-center justify-center text-dim">Loading race…</main>;
+  if (!meta) return <main id="main" className="flex flex-1 items-center justify-center text-dim">Loading race…</main>;
 
   return (
     // reducedMotion="user": skip row/banner animations if the OS asks for less motion
     <MotionConfig reducedMotion="user">
-      <main className="grid h-screen grid-cols-[1fr_20rem] grid-rows-[auto_1fr_auto]
+      <main id="main" className="grid h-screen grid-cols-[1fr_20rem] grid-rows-[auto_1fr_auto]
         [grid-template-areas:'top_top''track_side''bottom_side']">
         <TopBar meta={meta} />
         <section className="relative min-h-0 [grid-area:track]" aria-label="Track">

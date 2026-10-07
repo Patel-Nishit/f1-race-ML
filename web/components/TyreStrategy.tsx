@@ -57,15 +57,15 @@ export function TyreStrategy({ year, round, totalLaps }: { year: number; round: 
         <svg viewBox={`0 0 ${W} ${height}`} className="w-full" role="img"
           aria-label="Tyre strategy so far for every driver">
           {/* current lap marker */}
-          <line x1={x(leaderLap)} x2={x(leaderLap)} y1={0} y2={rows.length * ROW} stroke="#5f6373" strokeWidth="1" />
+          <line x1={x(leaderLap)} x2={x(leaderLap)} y1={0} y2={rows.length * ROW} stroke="var(--ink-3)" strokeWidth="1" />
           {rows.map((d, i) => {
             const stints = stintsSoFar(strategy[d.code] ?? [], d.lap);
             const yMid = i * ROW + ROW / 2;
             const description = stints.map((s) =>
-              `${s.compound.toLowerCase()} laps ${s.start_lap}–${s.end_lap}`).join(", ");
+              `${s.compound.toLowerCase()} laps ${s.start_lap} to ${s.end_lap}`).join(", ");
             return (
               <g key={d.code} aria-label={`${d.code}: ${description}`} opacity={d.out ? 0.45 : 1}>
-                <text x={0} y={yMid + 3.5} fontSize="10" fontWeight="700" fill="#ecedf2">{d.code}</text>
+                <text x={0} y={yMid + 3.5} fontSize="10" fontWeight="700" fill="var(--ink)">{d.code}</text>
                 {stints.map((s, k) => {
                   const { x0, x1 } = segment(s);
                   const last = k === stints.length - 1;
@@ -101,7 +101,7 @@ export function TyreStrategy({ year, round, totalLaps }: { year: number; round: 
           })}
           {/* lap axis */}
           {ticks(totalLaps, 10).map((lap) => (
-            <text key={lap} x={x(lap)} y={height - 3} fontSize="9" fill="#969aaa" textAnchor="middle">{lap}</text>
+            <text key={lap} x={x(lap)} y={height - 3} fontSize="9" fill="var(--ink-2)" textAnchor="middle">{lap}</text>
           ))}
         </svg>
         {hover && (
@@ -109,7 +109,7 @@ export function TyreStrategy({ year, round, totalLaps }: { year: number; round: 
             className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded border border-line bg-bg/95 px-2 py-1 text-xs shadow"
             style={{ left: `${(hover.x / W) * 100}%`, top: `${((hover.y - 6) / height) * 100}%` }}>
             <b className="text-ink">{hover.stint.compound[0] + hover.stint.compound.slice(1).toLowerCase()}</b>
-            <span className="text-dim"> · {hover.code} · laps {hover.stint.start_lap}–{hover.stint.end_lap}
+            <span className="text-dim"> · {hover.code} · laps {hover.stint.start_lap}-{hover.stint.end_lap}
               {" "}({lapCount(hover.stint)})</span>
           </div>
         )}

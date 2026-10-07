@@ -55,9 +55,10 @@ def browser():
         b.close()
 
 
-@pytest.fixture
-def page(browser):
-    page = browser.new_page(viewport={"width": 1440, "height": 900})
+# Every browser test runs twice: in the dark and in the light colour scheme.
+@pytest.fixture(params=["dark", "light"])
+def page(browser, request):
+    page = browser.new_page(viewport={"width": 1440, "height": 900}, color_scheme=request.param)
     page.errors = []
     page.on("pageerror", lambda e: page.errors.append(str(e)))
     yield page
@@ -103,6 +104,12 @@ def seek(page, t):
     """Click the timeline at replay time t (seconds)."""
     bar = page.get_by_role("slider", name="Race timeline").bounding_box()
     page.mouse.click(bar["x"] + bar["width"] * t / DURATION, bar["y"] + bar["height"] / 2)
+
+
+def css_rgb(page, var):
+    """A theme colour (CSS variable) as an (r, g, b) tuple, e.g. css_rgb(page, "--track-edge")."""
+    value = page.evaluate(f"getComputedStyle(document.documentElement).getPropertyValue('{var}').trim()")
+    return tuple(int(value[i:i + 2], 16) for i in (1, 3, 5))
 
 
 def count_opaque(page, rgb, tolerance=6):

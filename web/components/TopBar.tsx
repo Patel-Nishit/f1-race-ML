@@ -39,7 +39,7 @@ function RaceClock({ totalLaps }: { totalLaps: number }) {
 
 function StatusPill() {
   const status = useReplayStore((s) => s.buffer.latest?.status ?? 1);
-  const info = TRACK_STATUS[status] ?? { label: String(status), color: "#969aaa" };
+  const info = TRACK_STATUS[status] ?? { label: String(status), color: "var(--ink-2)" };
   return (
     <span className="rounded px-3 py-0.5 text-xs font-bold text-black" style={{ background: info.color }}
       aria-label={`Track status: ${info.label}`}>

@@ -29,7 +29,7 @@ export function RaceControl({ meta }: { meta: RaceMeta }) {
             return (
               <li key={c.t} className="flex items-center gap-2">
                 <span className="w-14 text-right font-mono text-xs tabular-nums text-dim">{formatRaceTime(c.t)}</span>
-                <span className="h-2.5 w-2.5 rounded-full" style={{ background: info?.color ?? "#969aaa" }} />
+                <span className="h-2.5 w-2.5 rounded-full" style={{ background: info?.color ?? "var(--ink-2)" }} />
                 <span>{info?.label ?? c.status}</span>
               </li>
             );

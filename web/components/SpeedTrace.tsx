@@ -57,7 +57,7 @@ export function SpeedTrace({ year, round, drivers }: { year: number; round: numb
                   strokeDasharray={DASH[order(w.code)]} />
               </svg>
               <span className="font-bold text-ink">{w.code}</span>
-              <span className="font-mono tabular-nums text-dim">{r ? `${Math.round(r.speed)} km/h` : "–"}</span>
+              <span className="font-mono tabular-nums text-dim">{r ? `${Math.round(r.speed)} km/h` : "-"}</span>
             </span>
           );
         })}
@@ -82,12 +82,12 @@ export function SpeedTrace({ year, round, drivers }: { year: number; round: numb
           {/* hairline, solid, recessive gridlines + y ticks */}
           {ticks(MAX_SPEED, 100).map((v) => (
             <g key={v}>
-              <line x1={M.left} x2={W - M.right} y1={y(v)} y2={y(v)} stroke="#2c2f3a" strokeWidth="1" />
-              <text x={M.left - 4} y={y(v) + 3} textAnchor="end" fontSize="9" fill="#969aaa">{v}</text>
+              <line x1={M.left} x2={W - M.right} y1={y(v)} y2={y(v)} stroke="var(--line)" strokeWidth="1" />
+              <text x={M.left - 4} y={y(v) + 3} textAnchor="end" fontSize="9" fill="var(--ink-2)">{v}</text>
             </g>
           ))}
           {[tStart, tStart + WINDOW_S / 2, tEnd].map((t, i) => (
-            <text key={i} x={x(t)} y={H - 4} fontSize="9" fill="#969aaa"
+            <text key={i} x={x(t)} y={H - 4} fontSize="9" fill="var(--ink-2)"
               textAnchor={i === 0 ? "start" : i === 2 ? "end" : "middle"}>
               {i === 2 ? "now" : `−${Math.round(tEnd - t)} s`}
             </text>
@@ -105,12 +105,12 @@ export function SpeedTrace({ year, round, drivers }: { year: number; round: numb
           {/* crosshair: a hairline that snaps to the nearest sample, plus ringed dots */}
           {hoverT !== null && (
             <g>
-              <line x1={x(hoverT)} x2={x(hoverT)} y1={M.top} y2={H - M.bottom} stroke="#ecedf2" strokeWidth="1" />
+              <line x1={x(hoverT)} x2={x(hoverT)} y1={M.top} y2={H - M.bottom} stroke="var(--ink)" strokeWidth="1" />
               {series.map((w) => {
                 const r = readout(w, hoverT);
                 return r && (
                   <circle key={w.code} cx={x(r.t)} cy={y(r.speed)} r="4" fill={colour.get(w.code)}
-                    stroke="#1a1c24" strokeWidth="2" />
+                    stroke="var(--surface)" strokeWidth="2" />
                 );
               })}
             </g>
@@ -130,7 +130,7 @@ export function SpeedTrace({ year, round, drivers }: { year: number; round: numb
                     <line x1="0" y1="2" x2="12" y2="2" stroke={colour.get(w.code)} strokeWidth="2"
                       strokeDasharray={DASH[order(w.code)] ? "3 2" : ""} />
                   </svg>
-                  <b className="font-mono tabular-nums text-ink">{r ? Math.round(r.speed) : "–"}</b>
+                  <b className="font-mono tabular-nums text-ink">{r ? Math.round(r.speed) : "-"}</b>
                   <span className="text-dim">{w.code}</span>
                 </p>
               );

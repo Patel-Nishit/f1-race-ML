@@ -1,16 +1,17 @@
 import re
 
-from conftest import count_opaque, lap, seek, until
+from conftest import count_opaque, css_rgb, lap, seek, until
 
 SC_AMBER = (255, 176, 0)
 
 
 def leftmost_track_px(page):
-    return page.evaluate("""() => {
+    """x of the leftmost pixel of the track outline, whatever the theme's track colour."""
+    return page.evaluate("""([r0, g0, b0]) => {
         const c = document.querySelector('canvas'), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
         for (let x = 0; x < c.width; x += 2) for (let y = 0; y < c.height; y += 4) { const i = (y * c.width + x) * 4;
-          if (Math.abs(d[i]-0x6e) < 6 && Math.abs(d[i+1]-0x72) < 6 && Math.abs(d[i+2]-0x82) < 6) return x / devicePixelRatio; }
-        return null; }""")
+          if (d[i+3] > 200 && Math.abs(d[i]-r0) < 6 && Math.abs(d[i+1]-g0) < 6 && Math.abs(d[i+2]-b0) < 6) return x / devicePixelRatio; }
+        return null; }""", list(css_rgb(page, "--track-edge")))
 
 
 def test_menu_opens_with_the_replay_and_track_refits(replay):
@@ -57,14 +58,14 @@ def test_tyre_strategy_has_no_spoilers(replay):
     page.get_by_role("checkbox", name=re.compile("Tyre strategy")).check()
     strat = page.get_by_label("Tyre strategy", exact=True)
     ver = strat.locator("g[aria-label^='VER:']")
-    assert until(lambda: ver.get_attribute("aria-label") == "VER: medium laps 1–1")
+    assert until(lambda: ver.get_attribute("aria-label") == "VER: medium laps 1 to 1")
     seek(page, 800)
-    assert until(lambda: ver.get_attribute("aria-label", timeout=500) == f"VER: medium laps 1–7, hard laps 8–{lap(page)}")
+    assert until(lambda: ver.get_attribute("aria-label", timeout=500) == f"VER: medium laps 1 to 7, hard laps 8 to {lap(page)}")
     ver.locator("g[role=img]").last.hover()
     assert until(lambda: "Hard" in strat.get_by_role("status").inner_text())
     # shortcuts still work after ticking a checkbox (it keeps focus)
     page.keyboard.press("r")
-    assert until(lambda: ver.get_attribute("aria-label") == "VER: medium laps 1–1")
+    assert until(lambda: ver.get_attribute("aria-label") == "VER: medium laps 1 to 1")
 
 
 def test_race_control_and_weather(replay):

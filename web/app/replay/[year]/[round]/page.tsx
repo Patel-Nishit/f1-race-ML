@@ -30,5 +30,5 @@ async function ReplayRoute({ params }: { params: PageProps<"/replay/[year]/[roun
 }
 
 function FullScreenMessage({ children }: { children: React.ReactNode }) {
-  return <main className="flex flex-1 items-center justify-center p-10 text-dim">{children}</main>;
+  return <main id="main" className="flex flex-1 items-center justify-center p-10 text-dim">{children}</main>;
 }

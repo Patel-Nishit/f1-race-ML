@@ -48,7 +48,7 @@ export function Leaderboard({ drivers }: { drivers: DriverMeta[] }) {
                   ${d.out ? "text-faint" : ""}`}
               >
                 <span className="text-right font-mono font-bold tabular-nums">{d.position}</span>
-                <span className="h-5 rounded-sm" style={{ background: d.out ? "#5f6373" : meta?.color }} />
+                <span className="h-5 rounded-sm" style={{ background: d.out ? "var(--ink-3)" : meta?.color }} />
                 <span className="flex items-center gap-1.5 font-bold tracking-wide">
                   {d.code}
                   {d.drs_open && !d.out && (
@@ -70,7 +70,7 @@ export function Leaderboard({ drivers }: { drivers: DriverMeta[] }) {
 }
 
 function TyreBadge({ compound, dim }: { compound: string; dim: boolean }) {
-  const colour = dim ? "#5f6373" : TYRE_COLOURS[compound] ?? TYRE_COLOURS.UNKNOWN;
+  const colour = dim ? "var(--ink-3)" : TYRE_COLOURS[compound] ?? TYRE_COLOURS.UNKNOWN;
   return (
     <span
       className="flex h-6 w-6 items-center justify-center rounded-full border-[2.5px] bg-black text-xs font-black leading-none"
