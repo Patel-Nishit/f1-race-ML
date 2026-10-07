@@ -62,6 +62,13 @@
   *Learned:* serverless vs long-running servers, containers, build-time vs
   runtime config, CORS in production, securing expensive endpoints, CI.
 
+- [x] **Redesign ("pit wall").** Audit and plan first (docs/REDESIGN_PLAN.md),
+  then foundations (light + dark tokens, contrast-checked), race picker
+  (live mini-replay hero, bento, grouped calendar) and replay (full-bleed
+  track, floating panels, phone layout). Taste pre-flight recorded per page.
+  *Learned:* design tokens, WCAG contrast, responsive layout, measuring
+  rendering cost, CSS pipeline quirks, keeping tests honest during a redesign.
+
 ## Open questions
 
-- Public live demo (Vercel + hosted API), or local + screen recording?
+- ~~Public live demo or local + recording?~~ Decided: web on Vercel, API on a container host (chapter 14).

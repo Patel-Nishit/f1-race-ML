@@ -216,3 +216,62 @@ safety-car periods. I animate real overtakes but snap after seeks, measured in
 the browser. And reviewing screenshots of real race moments surfaced a
 lapped-car bug in the shared data layer, which I fixed and verified against
 the official classification for three races."
+
+## The redesign: "pit wall" design system
+
+![Replay, dark](images/web-replay.png)
+
+| Light theme | Phone |
+|---|---|
+| ![Replay, light](images/web-replay-light.png) | ![Phone](images/web-mobile.png) |
+
+After the features were done, the web app got a full visual overhaul, audited
+and planned first in [REDESIGN_PLAN.md](REDESIGN_PLAN.md) (with the complete
+pre-flight results). The ideas worth knowing:
+
+**Design tokens.** Every colour is a CSS variable in `web/app/globals.css`
+with a dark and a light value, switched by the visitor's system setting.
+Components never use raw colours, so one file controls both themes. The
+canvas can't read CSS, so `web/lib/theme.ts` reads the variables and redraws
+the track when the system theme flips.
+
+**Contrast is tested, not eyeballed.** Every text/background pair meets WCAG
+AA (4.5:1) in both themes. Red needed two tokens: `--accent` for fills (white
+text on red passes) and a lighter `--accent-ink` for red *text* on dark panels
+(the fill red was only 3.89:1). `e2e/test_design.py` checks the colours the
+browser actually uses.
+
+**Type and shape.** Titillium Web, with 700 italic as the display style (the
+forward lean of F1 graphics); Geist Mono with tabular figures for every
+number. One shape rule: 6 px corners on panels and controls, **slanted chips**
+(skewed -12°) for positions, the lap bug and flags, round tyre badges. Nothing
+else.
+
+**The race picker** is a landing page: the hero's visual is the product
+itself, a live mini replay that starts 20 s before the race's first safety
+car (read from its own flag history). The ready races are a bento drawn from
+their real circuit outlines, and the calendar groups rounds by month.
+
+**The replay** puts the track full-bleed with panels floating over it. The
+canvas is told how much space each panel takes (`fitTrack` insets), so no car
+ever hides under a panel. On phones it becomes a column with Tower / Insights
+tabs.
+
+### Bugs and lessons from the redesign
+
+- **A blur that halved the frame rate.** Frosted-glass panels
+  (`backdrop-filter: blur`) over a canvas that redraws 60 times a second
+  meant re-blurring every frame: **60 → ~27 fps**, measured. The panels sit
+  over empty space anyway, so they use a near-opaque surface instead, and a
+  browser test makes sure nothing blurs the canvas.
+- **A compiler quirk.** Given both `backdrop-filter` and
+  `-webkit-backdrop-filter`, Lightning CSS (inside Tailwind) kept only the
+  prefixed one, which Chrome ignores. Write the standard property and let the
+  tool add prefixes.
+- **A stale dev server.** Twice, `next dev` missed an edit to `globals.css`
+  and kept serving old colours, so screenshots and tests looked fine for the
+  wrong reason. The fix is restarting after changing that file. The lasting
+  protection is a test that reads the *live* tokens.
+- **Measure before trusting your eyes.** The scrolled tiles, the leaderboard
+  rows and the stale colours were all confirmed by measuring (opacity,
+  positions, computed styles), not by looking.

@@ -136,8 +136,9 @@ E2E_API_URL=https://<your-api>.onrender.com \
   classification, lapped cars across three races), finding and fixing two
   systematic ranking biases. Modelled the missing safety-car position as a
   state machine.
-- Shipped with **104 automated tests** (pytest, Vitest, Playwright end-to-end,
-  including killing the server mid-replay), CI on GitHub Actions, and a
+- Shipped with **129 automated test runs** (pytest, Vitest, and Playwright
+  end-to-end in light and dark themes, including live WCAG contrast checks and
+  killing the server mid-replay), CI on GitHub Actions, and a
   Dockerised API deployed separately from the Vercel front end.
 
 *(Swap in your own numbers if you add races or features. Every number above

@@ -18,11 +18,16 @@ One Python data pipeline (FastF1 + numpy) feeds **two clients**: a Next.js web a
 | **Controls** | Play/pause, ±5 s, ±1 lap, 0.25×–32×, a scrubbable timeline with safety-car periods marked, plus keyboard shortcuts |
 | **Legend** | On-screen explanation of every control and colour |
 | **Insights menu** | Opens with the replay: driver telemetry, speed trace, tyre strategy, gaps, race control & weather |
+| **Light & dark, phone to desktop** | Follows the system theme (both checked to WCAG AA); a column layout with tabs on phones |
 | **Driver telemetry** | Speed, gear, DRS, lap, throttle and brake for up to two selected drivers |
 
-| Web app | Tyre strategy (spoiler-free) | Desktop app |
+| Race picker | Replay, light theme | Phone |
 |---|---|---|
-| ![Web](docs/images/web-insights.png) | ![Strategy](docs/images/web-strategy.png) | ![Desktop](docs/images/desktop-safety-car.png) |
+| ![Race picker](docs/images/web-home.png) | ![Replay, light](docs/images/web-replay-light.png) | ![Phone](docs/images/web-mobile.png) |
+
+| Tyre strategy (spoiler-free) | Desktop app (Arcade) |
+|---|---|
+| ![Strategy](docs/images/web-strategy.png) | ![Desktop](docs/images/desktop-safety-car.png) |
 
 ## Engineering highlights
 
@@ -32,7 +37,8 @@ One Python data pipeline (FastF1 + numpy) feeds **two clients**: a Next.js web a
 - **Live-data protocol:** the server owns the playback clock. Frames are compact (1.5 KB, 2.3× smaller than naive JSON), sent at a fixed 10 Hz at any playback speed, and silent when paused. Commands are acked, so stale in-flight frames are dropped after a seek.
 - **Resilient client:** 60 fps entity interpolation, and reconnects with exponential backoff that resume at the same race time (tested by killing the server mid-replay).
 - **Gaps measured like F1 timing:** time at the same place on track, by inverting the leader's progress curve.
-- **Tested end to end:** 67 Python tests, 22 web unit tests, 15 Playwright browser tests (stable over repeated runs), and CI on every push.
+- **Tested end to end:** 67 Python tests, 24 web unit tests, 19 Playwright browser tests run in both colour schemes (38 runs, including live WCAG contrast checks), and CI on every push.
+- **Design system:** CSS-variable tokens for light and dark, contrast verified in the browser, one shape rule, and a performance-first choice measured on the live canvas (no backdrop blur: 60 vs ~27 fps).
 
 ## Architecture
 
