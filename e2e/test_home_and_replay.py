@@ -5,9 +5,22 @@ from conftest import API, WEB, clock, until
 
 def test_race_picker_lists_the_season(page):
     page.goto(f"{WEB}/")
-    page.get_by_text("Saudi Arabian Grand Prix").wait_for(timeout=60_000)
-    assert page.locator("li").count() == 24  # 2024 calendar
-    assert page.get_by_role("link", name="Watch replay").count() >= 1
+    page.locator("li", has_text="Saudi Arabian Grand Prix").wait_for(timeout=60_000)
+    assert page.locator("li").count() == 24  # 2024 calendar, one row per round
+    assert page.get_by_role("tab", name="2024").get_attribute("aria-selected") == "true"
+    # hero CTA, a tile per ready race, and the ready rows all open replays
+    assert page.get_by_role("link", name="Watch replay", exact=True).count() >= 2
+    assert page.get_by_role("link", name="Watch replay: Saudi Arabian Grand Prix 2024").count() == 1
+
+
+def test_season_strip_keyboard(page):
+    page.goto(f"{WEB}/")
+    tab = page.get_by_role("tab", name="2024")
+    tab.wait_for(timeout=60_000)
+    tab.focus()
+    page.keyboard.press("ArrowRight")  # seasons run newest to oldest
+    assert page.get_by_role("tab", name="2023").get_attribute("aria-selected") == "true"
+    page.locator("li", has_text="Bahrain Grand Prix").wait_for(timeout=60_000)
 
 
 def test_replay_streams_and_pauses(page):

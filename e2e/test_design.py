@@ -1,0 +1,44 @@
+"""Design-system checks against the colours the browser actually uses.
+
+Reads the live CSS variables (not the source file), so a stale stylesheet or
+a bad token value can't pass unnoticed. Runs in both colour schemes.
+"""
+
+import pytest
+
+from conftest import WEB, expand_hex
+
+
+def _luminance(hex_colour):
+    hex_colour = expand_hex(hex_colour)
+    channels = [int(hex_colour[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+    lin = [c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4 for c in channels]
+    return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
+
+
+def contrast(a, b):
+    la, lb = sorted((_luminance(a), _luminance(b)), reverse=True)
+    return (la + 0.05) / (lb + 0.05)
+
+
+# (text token, background token, minimum ratio)
+PAIRS = [
+    ("--ink", "--bg", 4.5), ("--ink", "--surface", 4.5),
+    ("--ink-2", "--surface", 4.5), ("--ink-2", "--surface-2", 4.5),
+    ("--ink-3", "--surface", 4.5), ("--ink-3", "--surface-2", 4.5),
+    ("--on-accent", "--accent", 4.5), ("--accent-ink", "--surface", 4.5),
+    ("--sc-ink", "--surface", 4.5), ("--ok-ink", "--surface", 4.5),
+    ("--track-edge", "--bg", 3.0),  # UI component, not text
+]
+
+
+def test_theme_tokens_meet_wcag_aa(page):
+    page.goto(f"{WEB}/")
+    tokens = page.evaluate("""(names) => { const s = getComputedStyle(document.documentElement);
+        return Object.fromEntries(names.map(n => [n, s.getPropertyValue(n).trim()])); }""",
+                           sorted({name for pair in PAIRS for name in pair[:2]}))
+    missing = [n for n, v in tokens.items() if not v]
+    assert not missing, f"CSS variables missing in the browser: {missing}"
+    failures = [f"{fg} on {bg}: {contrast(tokens[fg], tokens[bg]):.2f} < {need}"
+                for fg, bg, need in PAIRS if contrast(tokens[fg], tokens[bg]) < need]
+    assert not failures, failures

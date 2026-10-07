@@ -218,3 +218,53 @@ Each step is its own commit:
 4. **Docs:** a "Design system" section in chapter 12, new README screenshots.
 
 New dependency: `@phosphor-icons/react` only.
+
+## Progress log
+
+### Step 1: foundations (done)
+Theme tokens (dark + light), contrast-checked; Phosphor icons; focus, press
+and shape rules; mark/favicon, 404, skip link, OG metadata; canvas and charts
+on tokens; browser suite runs in both schemes. Lesson: the dev server missed a
+`globals.css` edit and served stale colours for a while, so a browser test now
+reads the **live** tokens and checks every text pair against WCAG AA.
+
+### Step 2: race picker (done): Taste pre-flight
+
+Dials 8 / 7 / 4. ✅ pass, ➖ not applicable, with reasons.
+
+| Check | Result |
+|-------|--------|
+| Design read, dials, system (Tailwind v4 + own tokens), redesign audit | ✅ sections 1-2 |
+| Zero em/en dashes in visible text | ✅ `grep` finds 0 in `app/`, `components/`, `lib/` |
+| One theme per page (auto light/dark), no inverted sections | ✅ |
+| One accent (red); semantic colours only for state | ✅ |
+| Shape rule (6 px; slanted underline; round tyres) | ✅ after fixing a pill-shaped progress bar |
+| Button contrast (white on red 4.6:1 dark / 5.3:1 light) | ✅ checked by `e2e/test_design.py` |
+| No CTA wraps at desktop (`whitespace-nowrap`, 2-word labels) | ✅ |
+| Forms | ➖ none on the page |
+| Serif / premium palette | ➖ sans only; not a premium-consumer brief |
+| Italic descender clearance (`leading-[1.1]` + `pb-1`) | ✅ after fixing the large tile title and 404 heading |
+| Hero fits viewport: 1-2 line headline, 19-word subtext, CTA visible at 1440 and 390 px | ✅ screenshots |
+| Hero top padding ≤ `pt-24` (uses `md:pt-16`) | ✅ |
+| Hero stack ≤ 4 elements (headline, subtext, CTA) | ✅ 3 |
+| Eyebrows ≤ ceil(4 sections / 3) = 2 | ✅ 0 uppercase-tracked labels |
+| No split headers, no zigzag runs | ✅ |
+| One label per intent ("Watch replay", "Prepare race") | ✅ |
+| Logo wall / quotes / testimonials | ➖ none |
+| Bento: real visuals (track outlines), varied tints, exact cell count (3 races = 3 cells) | ✅ |
+| Copy self-audit | ✅ every string re-read |
+| Motion motivated: entry (hierarchy), tile reveal, hover lift (feedback), mini replay (the product) | ✅ |
+| No marquee, no scroll listeners, no GSAP | ✅ |
+| Nav one line, 64 px | ✅ |
+| Distinct layout families (split hero, bento, grouped list) | ✅ 3 sections, 3 families |
+| Long list (24 rounds) uses a better component: grouped by month, 2 columns, no per-row borders | ✅ |
+| Real visuals: the hero is the real track canvas streaming a real race (a "real component preview"); tiles draw real circuits from data. No photos, no fake screenshots | ✅ (allowed alternative) |
+| No overlay pills, photo credits, version footers, micro-meta, scroll cues, locale strips, section numbers, decorative dots (one middle dot in tile metadata) | ✅ |
+| Reduced motion: Motion `reducedMotion="user"`, mini replay paused, skeletons and hover lift off | ✅ after fixing hover lift |
+| Dark and light tested | ✅ screenshots + 34 browser tests in both |
+| Mobile collapse explicit (hero, tiles, calendar, season strip scrolls) | ✅ |
+| `min-h-[100dvh]`, never `h-screen` | ✅ |
+| Effects clean up (mini replay disconnects) | ✅ |
+| Loading (skeletons), empty and error states (retry) | ✅ |
+| Icons: Phosphor only (+ one geometric brand mark) | ✅ |
+| Core Web Vitals | ➖ not measured: no Lighthouse in this environment |

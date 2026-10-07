@@ -10,13 +10,20 @@ import { applyFrame, emptyBuffer, expectAck, type FrameBuffer } from "./frameBuf
 import { ReplaySocket, type ConnectionState } from "./replaySocket";
 import type { Command, Hello } from "./types";
 
+/** Where a fresh connection starts (a reconnect resumes from the latest frame instead). */
+export interface StartOptions {
+  t?: number;
+  speed?: number;
+  autoplay?: boolean;
+}
+
 interface ReplayStore {
   connection: ConnectionState | "idle";
   connectionDetail: string;
   hello: Hello | null;
   buffer: FrameBuffer;
   socket: ReplaySocket | null;
-  connect: (year: number, round: number) => void;
+  connect: (year: number, round: number, start?: StartOptions) => void;
   disconnect: () => void;
   send: (command: Command) => void;
 }
@@ -28,7 +35,7 @@ export const useReplayStore = create<ReplayStore>((set, get) => ({
   buffer: emptyBuffer,
   socket: null,
 
-  connect(year, round) {
+  connect(year, round, start = {}) {
     get().socket?.close();
     set({ buffer: emptyBuffer, hello: null });
     const socket = new ReplaySocket(
@@ -36,9 +43,9 @@ export const useReplayStore = create<ReplayStore>((set, get) => ({
         // On a reconnect, carry on from where we were, at the same speed.
         const latest = get().buffer.latest;
         return replaySocketUrl(year, round, {
-          t: latest?.t ?? 0,
-          speed: latest?.speed ?? 1,
-          autoplay: latest?.playing ?? true,
+          t: latest?.t ?? start.t ?? 0,
+          speed: latest?.speed ?? start.speed ?? 1,
+          autoplay: latest?.playing ?? start.autoplay ?? true,
         });
       },
       {

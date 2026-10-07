@@ -106,9 +106,15 @@ def seek(page, t):
     page.mouse.click(bar["x"] + bar["width"] * t / DURATION, bar["y"] + bar["height"] / 2)
 
 
+def expand_hex(value):
+    """'#fff' -> '#ffffff' (browsers may shorten colours in CSS)."""
+    value = value.strip()
+    return "#" + "".join(c * 2 for c in value[1:]) if len(value) == 4 else value
+
+
 def css_rgb(page, var):
     """A theme colour (CSS variable) as an (r, g, b) tuple, e.g. css_rgb(page, "--track-edge")."""
-    value = page.evaluate(f"getComputedStyle(document.documentElement).getPropertyValue('{var}').trim()")
+    value = expand_hex(page.evaluate(f"getComputedStyle(document.documentElement).getPropertyValue('{var}')"))
     return tuple(int(value[i:i + 2], 16) for i in (1, 3, 5))
 
 

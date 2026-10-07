@@ -5,7 +5,7 @@ export default function NotFound() {
   return (
     <main id="main" className="mx-auto flex min-h-[100dvh] w-full max-w-xl flex-col justify-center gap-5 px-6">
       <Mark className="h-10 w-10" />
-      <h1 className="text-4xl font-bold italic leading-[1.1] tracking-tight">Off the racing line.</h1>
+      <h1 className="pb-1 text-4xl font-bold italic leading-[1.1] tracking-tight">Off the racing line.</h1>
       <p className="max-w-[48ch] text-dim">
         This page doesn&apos;t exist. The race you&apos;re after is probably in the calendar.
       </p>
