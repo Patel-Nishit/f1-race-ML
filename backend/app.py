@@ -32,7 +32,7 @@ app = FastAPI(
 # F1_CORS_ORIGIN_REGEX for preview deployments (https://.*\.vercel\.app).
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.environ.get("F1_CORS_ORIGINS", "http://localhost:3000").split(","),
+    allow_origins=os.environ.get("F1_CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(","),
     allow_origin_regex=os.environ.get("F1_CORS_ORIGIN_REGEX") or None,
     allow_methods=["*"],
     allow_headers=["*"],

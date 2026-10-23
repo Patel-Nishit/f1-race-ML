@@ -116,7 +116,7 @@ Measured: preparing Australia 2024 through the API took 167 s. Meanwhile
 
 The web app (port 3000) and the API (port 8000) are different **origins**. By
 default a browser blocks a page from reading responses from another origin.
-`CORSMiddleware` tells the browser that `http://localhost:3000` is allowed.
+`CORSMiddleware` tells the browser that `http://localhost:3000` (and `http://127.0.0.1:3000`) is allowed.
 Set `F1_CORS_ORIGINS` for a deployed site.
 
 ## Concept: columnar data pays off again

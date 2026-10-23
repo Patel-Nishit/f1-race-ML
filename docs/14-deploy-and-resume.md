@@ -83,7 +83,7 @@ E2E_API_URL=https://<your-api>.onrender.com \
 |----------|-------|---------|---------|
 | `NEXT_PUBLIC_API_URL` | web (build time) | `http://127.0.0.1:8000` | Where the browser finds the API |
 | `HOST`, `PORT` | API | `127.0.0.1`, `8000` | Hosts set `PORT`; the Dockerfile sets `HOST=0.0.0.0` |
-| `F1_CORS_ORIGINS` | API | `http://localhost:3000` | Sites allowed to call the API |
+| `F1_CORS_ORIGINS` | API | `http://localhost:3000,http://127.0.0.1:3000` | Sites allowed to call the API |
 | `F1_CORS_ORIGIN_REGEX` | API | none | Pattern of extra allowed sites |
 | `F1_ALLOW_PREPARE` | API | `true` (`false` in Docker) | Whether visitors may prepare new races |
 | `F1_DATA_DIR` | API, CLI | `computed_data` | Where prepared races live |
