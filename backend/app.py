@@ -18,6 +18,7 @@ from backend.replay import DRIVER_FIELDS
 from backend.ws import replay_socket
 from src.race_store import is_prepared, list_prepared, load_race_cached, race_paths
 from src.snapshot import lap_start_times
+from src.standings import StandingsCache
 from src.strategy import race_stints
 
 app = FastAPI(
@@ -44,6 +45,7 @@ app.add_middleware(
 ALLOW_PREPARE = os.environ.get("F1_ALLOW_PREPARE", "true").lower() not in ("0", "false", "no")
 
 jobs = PrepareJobs()
+standings_cache = StandingsCache()
 
 Year = Path(ge=2018, le=2100, description="Season, 2018 onwards")
 Round = Path(ge=1, le=30, description="Round number in the season")
@@ -98,6 +100,15 @@ async def season_events(year: int = Year):
     return [{**w, "round_number": int(w["round_number"]),
              "status": jobs.status(year, int(w["round_number"]))["state"]}
             for w in weekends]
+
+
+@app.get("/api/standings")
+async def standings():
+    """Live driver and constructor standings for the current season (Jolpica, cached 30 min)."""
+    try:
+        return await run_in_threadpool(standings_cache.get)  # network call: off the event loop
+    except Exception as e:
+        raise HTTPException(502, f"Could not load the live standings: {e}")
 
 
 @app.get("/api/races/{year}/{round_number}/status")

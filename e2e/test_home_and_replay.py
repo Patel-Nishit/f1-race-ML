@@ -81,3 +81,36 @@ def test_focus_favourite_selects_max(page):
     assert focus.get_attribute("aria-pressed") == "true"
     page.keyboard.press("m")  # the shortcut toggles it back off
     assert focus.get_attribute("aria-pressed") == "false"
+
+
+STANDINGS = {
+    "season": 2026, "round": 17, "fetched_at": 0, "stale": False,
+    "drivers": [
+        {"position": p, "code": c, "name": c, "number": n, "team": "", "team_id": "", "points": pts, "wins": 0}
+        for p, c, n, pts in [(1, "ANT", "12", 340), (2, "RUS", "63", 238), (3, "HAM", "44", 229),
+                             (4, "VER", "3", 221), (5, "LEC", "16", 215)]],
+    "constructors": [
+        {"position": 1, "team": "Mercedes", "team_id": "mercedes", "points": 578, "wins": 11},
+        {"position": 4, "team": "Red Bull", "team_id": "red_bull", "points": 332, "wins": 2}],
+}
+
+
+def test_favourites_live_standings(page):
+    # fixed data, so the test doesn't depend on this week's real championship
+    page.route("**/api/standings", lambda r: r.fulfill(json=STANDINGS))
+    page.goto(f"{WEB}/")
+    card = page.locator("section[aria-labelledby=favourites-heading]")
+    ladder = card.get_by_role("list", name="2026 driver standings around VER")
+    ladder.wait_for(timeout=60_000)
+    assert ladder.locator("li").all_inner_texts()[0].split() == ["P1", "ANT", "340"]
+    assert card.get_by_text("119 behind the leader, 8 behind P3").is_visible()
+    assert card.get_by_text("#3").is_visible()  # this season's number, not the replay's #1
+    assert card.get_by_role("list", name="2026 constructor standings around Red Bull").is_visible()
+
+
+def test_favourites_without_live_standings(page):
+    page.route("**/api/standings", lambda r: r.fulfill(status=502, json={"detail": "down"}))
+    page.goto(f"{WEB}/")
+    card = page.locator("section[aria-labelledby=favourites-heading]")
+    card.get_by_text("Live standings are unavailable right now.").first.wait_for(timeout=60_000)
+    assert card.get_by_role("link").filter(has_text="Saudi Arabian").count() == 1  # replay stats still there

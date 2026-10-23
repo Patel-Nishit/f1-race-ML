@@ -17,6 +17,7 @@ python main.py serve            # http://127.0.0.1:8000
 | `GET /api/races/{year}/{round}/meta` | Drivers, colours, track outline, lap start times |
 | `GET /api/races/{year}/{round}/telemetry/{code}` | One driver's speed/throttle/brake/gear/DRS for a time window |
 | `GET /api/races/{year}/{round}/strategy` | Every driver's tyre stints (phase 7) |
+| `GET /api/standings` | Live driver and constructor standings for the current season (from Jolpica, cached 30 min) |
 | `WS /ws/replay/{year}/{round}` | The live replay stream (chapter 09) |
 
 Files: `backend/app.py` (routes), `backend/jobs.py` (background preparation),

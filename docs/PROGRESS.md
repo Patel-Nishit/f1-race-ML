@@ -76,6 +76,12 @@
   tests. Chapter 12, "Favourites".
   *Learned:* single source of truth, theme layers with CSS variables,
   pre-paint scripts, server vs client components, honest statistics.
+- [x] **Live standings for the favourites.** `GET /api/standings` (Jolpica,
+  30-minute cache, stale fallback, retry back-off); the favourites card leads
+  with the live championship position, points, gaps and a mini ladder.
+  72 pytest, 31 vitest, 48 browser tests.
+  *Learned:* third-party APIs, TTL caching, failing soft, matching on ids,
+  testing with fake clocks and mocked routes.
 
 ## Open questions
 

@@ -361,13 +361,47 @@ them and the whole site follows. They show up in three places:
    expected 24 `<li>`s; the new card adds 3. The test now only looks inside
    the calendar section, which is what it meant all along.
 
+### Live championship standings
+
+The card leads with where Max and Red Bull stand in the **current**
+championship: position, points, wins, the gap to the leader and to the car
+ahead, and a mini ladder (leader, the one ahead, the favourite, the one
+behind). In October 2026, after round 17, that was Max P4 on 221 points and
+Red Bull P4 on 332.
+
+- **A second data source.** FastF1 timing data answers "what happened in
+  this race?". Standings come from the [Jolpica F1 API](https://github.com/jolpica/jolpica-f1),
+  the community successor of the Ergast API (FastF1's own `fastf1.ergast`
+  uses it). `src/standings.py` fetches both tables and reshapes them.
+- **The backend calls it, not the browser.** `GET /api/standings` keeps
+  one copy for 30 minutes, so a thousand visitors make one request to
+  Jolpica, which is rate limited. That's a **TTL cache** (time to live).
+- **Fail soft.** If Jolpica is down, the API serves the last good copy marked
+  `stale` (the card shows an amber dot and "last updated 14:05"), waits a
+  minute before trying again, and with no copy at all returns 502. The card
+  then says "Live standings are unavailable right now" and the replay stats
+  still show. One broken source never breaks the page.
+- **Two sources, two names.** FastF1 calls the team "Red Bull Racing";
+  Jolpica calls it "Red Bull" with the id `red_bull`. So `FAVOURITE_TEAM`
+  has a `standingsId`. Matching on ids, not display names, is the robust
+  choice.
+- **Fresh beats old.** Max races as #3 in 2026 (he carried #1 as champion
+  in 2024), so the card prefers the live number over the replays' one.
+- **Testing without the network.** The Python tests pass a fake `fetch`
+  and a fake `clock` into `StandingsCache`, so expiry and outages are tested
+  in milliseconds. The browser tests answer `/api/standings` with fixed data
+  (Playwright's `page.route`), so they don't change when the real
+  championship does.
+
 ### Exercises
 
 1. Make it yours: change `FAVOURITE_DRIVER` and `FAVOURITE_TEAM` to another
    pair (e.g. `LEC` and `Ferrari`) and check all three features follow.
-2. Add a "laps led" stat. You'll need the backend: the metadata doesn't
+2. Show the round's race name ("after the Mexico City GP") next to the
+   standings: Jolpica's `/current/{round}.json` has it.
+3. Add a "laps led" stat. You'll need the backend: the metadata doesn't
    include positions per lap, so add it to the prepare step and the API.
-3. Let any visitor choose their own favourites (saved in localStorage), with
+4. Let any visitor choose their own favourites (saved in localStorage), with
    yours as the default.
 
 ### Interview angle
@@ -377,3 +411,6 @@ already CSS variables, so a team theme is one attribute selector overriding
 them. Components didn't change; the canvas listens for the attribute.
 *"How do you avoid the theme flashing on load?"* An inline script in `<head>`
 applies the saved choice before the first paint.
+*"What happens when a third-party API goes down?"* The backend caches it for
+30 minutes, serves the last good copy marked stale, backs off before
+retrying, and the UI degrades to a message while the rest of the page works.

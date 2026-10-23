@@ -157,3 +157,32 @@ export interface PreparedRace {
   total_laps: number;
   duration: number;
 }
+
+/** Live championship standings (GET /api/standings, from Jolpica). */
+export interface DriverStanding {
+  position: number | null;
+  code: string;
+  name: string;
+  number: string | null;
+  team: string;
+  team_id: string;
+  points: number;
+  wins: number;
+}
+
+export interface ConstructorStanding {
+  position: number | null;
+  team: string;
+  team_id: string;
+  points: number;
+  wins: number;
+}
+
+export interface Standings {
+  season: number;
+  round: number; // standings are after this round (0 = season not started)
+  drivers: DriverStanding[];
+  constructors: ConstructorStanding[];
+  fetched_at: number; // unix seconds
+  stale: boolean; // true = the live source was unreachable, this is the last good copy
+}
