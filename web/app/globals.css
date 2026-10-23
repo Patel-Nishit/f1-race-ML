@@ -75,6 +75,57 @@
   }
 }
 
+/* Favourite driver/team spotlight (lib/favourites.ts): Red Bull yellow.
+   --fav is the ring on the track; --fav-ink is the star and its text, darker
+   in light mode so it still passes 4.5:1 on white. */
+:root {
+  --fav: #ffc906;
+  --fav-ink: #ffc906;
+}
+@media (prefers-color-scheme: light) {
+  :root { --fav-ink: #8a5f00; }
+}
+
+/* Red Bull team theme, switched on by data-team="redbull" on <html>
+   (lib/teamTheme.ts). Navy surfaces, Red Bull red as the accent; every pair
+   re-checked to WCAG AA. Only colours change, never layout. */
+:root[data-team="redbull"] {
+  --bg: #0a0f24;
+  --surface: #111a38;
+  --surface-2: #1a2448;
+  --line: #2a3666;
+  --ink: #eef0f7;
+  --ink-2: #a3abc6;
+  --ink-3: #8e97b6;
+  --accent: #db0a40;
+  --accent-ink: #ff5c80;
+  --accent-hover: #e8204f;
+  --track-edge: #6a76a3;
+  --track: #3a4570;
+  --tag-halo: #0a0f24;
+  --glass: rgb(17 26 56 / 0.93);
+}
+@media (prefers-color-scheme: light) {
+  :root[data-team="redbull"] {
+    --bg: #edf0f8;
+    --surface: #ffffff;
+    --surface-2: #f2f4fb;
+    --line: #d5dbeb;
+    --ink: #121a3a;
+    --ink-2: #4c5675;
+    --ink-3: #5f6886;
+    --accent: #c8093a;
+    --accent-ink: #c8093a;
+    --accent-hover: #a8072f;
+    --track-edge: #7a84a3;
+    --track: #c5cce0;
+    --car-stroke: #121a3a;
+    --tag-ink: #121a3a;
+    --tag-halo: #ffffff;
+    --glass: rgb(255 255 255 / 0.95);
+  }
+}
+
 /* Tailwind colour names used across the components (bg-panel, text-ink...). */
 @theme inline {
   --color-bg: var(--bg);
@@ -91,6 +142,8 @@
   --color-sc-ink: var(--sc-ink);
   --color-ok: var(--ok);
   --color-ok-ink: var(--ok-ink);
+  --color-fav: var(--fav);
+  --color-fav-ink: var(--fav-ink);
   --radius-ui: var(--radius);
   /* Motion tokens (plans/001). Overriding --ease-out also upgrades
      Tailwind's ease-out utility; the defaults apply to every transition-*. */

@@ -6,7 +6,9 @@
 // First and Last positions, Invert with a transform, then Play). After a jump
 // (seek, lap skip) the whole order changes at once; animating 20 rows flying
 // about is noise, so we snap instead, just like the canvas.
+import { StarIcon } from "@phosphor-icons/react";
 import { motion } from "motion/react";
+import { FAVOURITE_TEAM, isFavouriteDriver, isFavouriteTeam } from "@/lib/favourites";
 import { useReplayStore } from "@/lib/replayStore";
 import { TYRE_COLOURS } from "@/lib/status";
 import type { DriverMeta } from "@/lib/types";
@@ -37,16 +39,28 @@ export function Leaderboard({ drivers, className = "" }: { drivers: DriverMeta[]
             : !showGaps ? ""
             : d.position === 1 ? "LEADER"
             : d.gap != null ? `+${d.gap.toFixed(1)}` : "";
+          // spotlight: the favourite driver's row is tinted in their team
+          // colour, their teammate's more faintly (a background-image, so the
+          // hover/selected background colour still shows underneath)
+          const favourite = isFavouriteDriver(d.code);
+          const tint = favourite ? 22 : isFavouriteTeam(meta?.team) ? 10 : 0;
+          const tintLayer = tint && meta && !d.out
+            ? `linear-gradient(90deg, color-mix(in srgb, ${meta.color} ${tint}%, transparent), transparent 85%)`
+            : undefined;
           return (
             <motion.li key={d.code} layout="position"
               transition={jumped ? { duration: 0 } : { type: "spring", stiffness: 500, damping: 45 }}>
               <button
                 onClick={() => toggleDriver(d.code)}
                 aria-pressed={isSelected}
-                title={meta ? `${meta.name}, ${meta.team}` : d.code}
+                title={meta ? `${meta.name}, ${meta.team}${favourite ? " (favourite driver)"
+                  : isFavouriteTeam(meta.team) ? ` (${FAVOURITE_TEAM.short}, favourite team)` : ""}` : d.code}
                 className={`grid w-full grid-cols-[2.1rem_3px_1fr_1.6rem_4.25rem] items-center gap-2.5 rounded-ui px-1.5 py-[3px] text-left
                   ${isSelected ? "bg-panel-light" : "hover:bg-panel-light/70"} ${d.out ? "text-faint" : ""}`}
-                style={isSelected ? { boxShadow: `inset 3px 0 0 ${meta?.color ?? "var(--ink)"}` } : undefined}
+                style={{
+                  backgroundImage: tintLayer,
+                  boxShadow: isSelected ? `inset 3px 0 0 ${meta?.color ?? "var(--ink)"}` : undefined,
+                }}
               >
                 <span className={`chip-slant py-0.5 text-center font-mono text-sm font-bold tabular-nums ${
                   d.position === 1 && !d.out ? "bg-f1 text-white" : "bg-panel-light"}`}>
@@ -55,6 +69,9 @@ export function Leaderboard({ drivers, className = "" }: { drivers: DriverMeta[]
                 <span className="h-5 rounded-[1px]" style={{ background: d.out ? "var(--ink-3)" : meta?.color }} />
                 <span className="flex items-center gap-1.5 font-bold tracking-wide">
                   {d.code}
+                  {favourite && (
+                    <StarIcon size={12} weight="fill" className="text-fav-ink" aria-label="favourite driver" role="img" />
+                  )}
                   {d.drs_open && !d.out && (
                     <span className="rounded-[2px] bg-ok px-1 text-[9px] font-black leading-tight text-black">DRS</span>
                   )}

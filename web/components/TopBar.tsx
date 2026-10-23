@@ -3,8 +3,9 @@
 // Replay header: back link + race on the left, the broadcast-style "lap bug"
 // in the centre, playback state, connection and shortcuts on the right.
 import Link from "next/link";
-import { ArrowLeftIcon, KeyboardIcon, WifiSlashIcon } from "@phosphor-icons/react";
+import { ArrowLeftIcon, KeyboardIcon, StarIcon, WifiSlashIcon } from "@phosphor-icons/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { FAVOURITE_DRIVER } from "@/lib/favourites";
 import { DURATION, EASE_OUT, from } from "@/lib/motion";
 import { formatRaceTime } from "@/lib/format";
 import { useReplayStore } from "@/lib/replayStore";
@@ -33,6 +34,7 @@ export function TopBar({ meta }: { meta: RaceMeta }) {
       <div className="flex flex-1 items-center justify-end gap-3">
         <PausedFlag />
         <ConnectionBadge />
+        <FocusFavourite meta={meta} />
         <button onClick={toggleLegend} aria-expanded={legendOpen} title="Shortcuts (L)"
           className="hidden h-9 items-center gap-2 rounded-ui px-2.5 text-sm text-dim hover:bg-panel-light hover:text-ink sm:flex">
           <KeyboardIcon size={18} aria-hidden="true" /> Shortcuts
@@ -65,6 +67,22 @@ function LapBug({ totalLaps }: { totalLaps: number }) {
         <span className="chip-slant-text">{info.label}</span>
       </span>
     </div>
+  );
+}
+
+/** One click to select the favourite driver: telemetry, speed trace and tag. */
+function FocusFavourite({ meta }: { meta: RaceMeta }) {
+  const focused = useUiStore((s) => s.selected.includes(FAVOURITE_DRIVER.code));
+  const toggleDriver = useUiStore((s) => s.toggleDriver);
+  if (!meta.drivers.some((d) => d.code === FAVOURITE_DRIVER.code)) return null; // not in this race
+  return (
+    <button onClick={() => toggleDriver(FAVOURITE_DRIVER.code)} aria-pressed={focused}
+      title={`Select ${FAVOURITE_DRIVER.name} for telemetry (M)`}
+      className={`flex h-9 items-center gap-1.5 rounded-ui border px-2.5 text-sm font-semibold ${
+        focused ? "border-fav bg-panel-light text-ink" : "border-line text-dim hover:bg-panel-light hover:text-ink"}`}>
+      <StarIcon size={16} weight={focused ? "fill" : "bold"} className="text-fav-ink" aria-hidden="true" />
+      <span className="hidden md:inline">Focus</span> {FAVOURITE_DRIVER.first}
+    </button>
   );
 }
 

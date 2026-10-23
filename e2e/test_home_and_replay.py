@@ -1,12 +1,14 @@
+import re
 import time
 
-from conftest import API, WEB, clock, until
+from conftest import API, RACE, WEB, clock, until
 
 
 def test_race_picker_lists_the_season(page):
     page.goto(f"{WEB}/")
-    page.locator("li", has_text="Saudi Arabian Grand Prix").wait_for(timeout=60_000)
-    assert page.locator("li").count() == 24  # 2024 calendar, one row per round
+    calendar = page.locator("section[aria-labelledby=calendar-heading]")
+    calendar.locator("li", has_text="Saudi Arabian Grand Prix").wait_for(timeout=60_000)
+    assert calendar.locator("li").count() == 24  # 2024 calendar, one row per round
     assert page.get_by_role("tab", name="2024").get_attribute("aria-selected") == "true"
     # hero CTA, a tile per ready race, and the ready rows all open replays
     assert page.get_by_role("link", name="Watch replay", exact=True).count() >= 2
@@ -53,3 +55,29 @@ def test_unprepared_and_invalid_races(page):
     page.goto(f"{WEB}/replay/abc/1")
     page.get_by_text("valid race").wait_for(timeout=15_000)
     page.errors.clear()  # the 404 for round 9 is expected
+
+
+def test_favourites_card_and_team_theme(page):
+    page.goto(f"{WEB}/")
+    card = page.locator("section[aria-labelledby=favourites-heading]")
+    card.get_by_role("heading", name="Max Verstappen").wait_for(timeout=60_000)
+    # every result chip opens that race's replay
+    assert card.get_by_role("link").filter(has_text="Saudi Arabian").get_attribute("href") == "/replay/2024/2"
+    toggle = page.get_by_role("switch").first
+    assert toggle.get_attribute("aria-checked") == "false"
+    toggle.click()
+    assert page.evaluate("document.documentElement.dataset.team") == "redbull"
+    page.reload()  # the choice survives a reload, applied before React starts
+    assert page.evaluate("document.documentElement.dataset.team") == "redbull"
+    page.get_by_role("switch").first.click()
+    assert page.evaluate("document.documentElement.dataset.team") is None
+
+
+def test_focus_favourite_selects_max(page):
+    page.goto(f"{WEB}{RACE}")
+    focus = page.get_by_role("button", name=re.compile("Max"))
+    focus.wait_for(timeout=60_000)
+    focus.click()
+    assert focus.get_attribute("aria-pressed") == "true"
+    page.keyboard.press("m")  # the shortcut toggles it back off
+    assert focus.get_attribute("aria-pressed") == "false"

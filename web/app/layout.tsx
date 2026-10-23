@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Titillium_Web } from "next/font/google";
+import { TEAM_THEME_SCRIPT } from "@/lib/teamTheme";
 import "./globals.css";
 
 // Titillium Web is close to F1's broadcast typeface; its 700 italic is the
@@ -37,7 +38,13 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${titillium.variable} ${geistMono.variable} h-full antialiased`}>
+    // suppressHydrationWarning: the theme script below may add data-team to
+    // <html> before React hydrates, which is expected
+    <html lang="en" className={`${titillium.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: TEAM_THEME_SCRIPT }} />
+      </head>
       <body className="flex min-h-full flex-col font-sans">
         <a href="#main" className="skip-link">Skip to content</a>
         {children}

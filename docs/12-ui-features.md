@@ -307,3 +307,73 @@ Two bugs the review caught, by **measuring**, not by looking:
    server-rendered first paint can't know the visitor's setting. A CSS rule
    (`[data-enter] { transform: none !important }` under
    `prefers-reduced-motion`) covers it from the first frame.
+
+## Favourites: Max Verstappen and Red Bull Racing
+
+The site now has an owner: one favourite driver and one favourite team, set
+in two lines of [`web/lib/favourites.ts`](../web/lib/favourites.ts). Change
+them and the whole site follows. They show up in three places:
+
+| Feature | Where | What it does |
+|---|---|---|
+| Spotlight in replays | `TrackCanvas.tsx`, `Leaderboard.tsx`, `TopBar.tsx` | Max's car gets a yellow ring and an always-on name tag, and is drawn last so it's never hidden. His row has a star; both Red Bull rows are tinted in the team colour. **Focus Max** (or the **M** key) selects him, so telemetry and the speed trace show him straight away. |
+| Favourites card | `components/home/FavouritesCard.tsx` | Wins, podiums, best finish, places gained and a chip per race (each chip opens that replay), plus team podiums. |
+| Red Bull theme | `lib/teamTheme.ts`, `globals.css`, `TeamThemeToggle.tsx` | A switch in the nav (and on the card) turns the site navy with Red Bull red. Remembered across visits. |
+
+### Concepts
+
+- **One source of truth.** The driver code and team name live in one file.
+  The canvas, leaderboard, shortcut and card all ask `isFavouriteDriver()`
+  instead of each one hard-coding `"VER"`.
+- **Honest numbers.** The stats come only from what the race metadata really
+  holds (grid, final position, status), and only for the races prepared on
+  this server. The card says so. A retirement is not a finish: Max retired
+  in Australia 2024 and was classified 19th, which must not count as "P19".
+- **A theme is just variables.** Light/dark already swaps CSS variables. The
+  team theme is one more layer: `:root[data-team="redbull"] { --bg: … }`.
+  That selector is more specific than `:root`, so it wins without
+  `!important`. The canvas re-reads the colours when the attribute changes,
+  using a `MutationObserver` (it can't use CSS).
+- **No flash of the wrong theme.** React runs *after* the first paint, so a
+  saved choice applied by React would flash the default colours first. A
+  tiny script in `<head>` (in `app/layout.tsx`) reads localStorage and sets
+  the attribute before anything is drawn. `suppressHydrationWarning` tells
+  React this difference on `<html>` is expected.
+- **Contrast, again.** Every new colour pair was checked to WCAG AA (4.5:1
+  for text). Yellow text fails on white, so the star uses a darker amber in
+  light mode (`--fav-ink`), while the ring on the track keeps bright yellow
+  with a thin dark edge so it shows on both themes.
+- **Background tint without losing hover.** The row tint is a
+  `background-image` gradient, so the row's `background-color` (hover,
+  selected) still shows underneath.
+
+### Bugs found while building it
+
+1. **A server component imported a client hook.** `app/layout.tsx` is a
+   server component, and it imported `lib/teamTheme.ts`, which used
+   `useSyncExternalStore`. The page went to a 500 error. Fix: keep that file
+   free of React, and move the hook into the client component that uses it.
+2. **The dev server missed new Tailwind colours.** After adding `--color-fav`
+   to `@theme`, `next dev` kept serving old CSS without `text-fav-ink`, so
+   the stars were white. A production build had the classes. Restart
+   `npm run dev` after editing `globals.css`.
+3. **A test counted every list item on the page.** The calendar test
+   expected 24 `<li>`s; the new card adds 3. The test now only looks inside
+   the calendar section, which is what it meant all along.
+
+### Exercises
+
+1. Make it yours: change `FAVOURITE_DRIVER` and `FAVOURITE_TEAM` to another
+   pair (e.g. `LEC` and `Ferrari`) and check all three features follow.
+2. Add a "laps led" stat. You'll need the backend: the metadata doesn't
+   include positions per lap, so add it to the prepare step and the API.
+3. Let any visitor choose their own favourites (saved in localStorage), with
+   yours as the default.
+
+### Interview angle
+
+*"How did you add theming without rewriting components?"* All colours were
+already CSS variables, so a team theme is one attribute selector overriding
+them. Components didn't change; the canvas listens for the attribute.
+*"How do you avoid the theme flashing on load?"* An inline script in `<head>`
+applies the saved choice before the first paint.

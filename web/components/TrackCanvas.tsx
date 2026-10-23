@@ -7,6 +7,7 @@
 // repaint pixels. React only sets the canvas up; a requestAnimationFrame
 // loop does the drawing, reading the store directly with getState().
 import { useEffect, useRef } from "react";
+import { isFavouriteDriver } from "@/lib/favourites";
 import { interpolate } from "@/lib/interpolate";
 import { useReplayStore } from "@/lib/replayStore";
 import { onThemeChange, readTheme, type CanvasTheme } from "@/lib/theme";
@@ -104,9 +105,11 @@ export function TrackCanvas({ meta, insets = {} }: { meta: RaceMeta; insets?: In
       const state = interpolate(useReplayStore.getState().buffer, performance.now());
       if (!state) return;
 
-      // back-markers first, so the leader is drawn on top
+      // back-markers first, so the leader is drawn on top; the favourite
+      // driver last of all, so their spotlight ring is never hidden
       const order = new Map(useReplayStore.getState().buffer.latest!.drivers.map((d) => [d.code, d.position]));
-      const cars = [...state.cars].sort((a, b) => (order.get(b.code) ?? 0) - (order.get(a.code) ?? 0));
+      const rank = (code: string) => (isFavouriteDriver(code) ? -1 : order.get(code) ?? 0);
+      const cars = [...state.cars].sort((a, b) => rank(b.code) - rank(a.code));
       const selected = useUiStore.getState().selected;
       drawn = [];
       for (const car of cars) {
@@ -124,6 +127,17 @@ export function TrackCanvas({ meta, insets = {} }: { meta: RaceMeta; insets?: In
           ctx.strokeStyle = theme.tagInk;
           ctx.stroke();
         }
+        if (isFavouriteDriver(car.code)) {
+          // spotlight: a yellow ring with a thin dark edge, visible on both themes
+          ctx.beginPath();
+          ctx.arc(x, y, carRadius + 3.5, 0, Math.PI * 2);
+          ctx.lineWidth = 4.5;
+          ctx.strokeStyle = theme.carStroke;
+          ctx.stroke();
+          ctx.lineWidth = 2.5;
+          ctx.strokeStyle = theme.fav;
+          ctx.stroke();
+        }
         ctx.beginPath();
         ctx.arc(x, y, carRadius, 0, Math.PI * 2);
         ctx.fillStyle = colours.get(car.code) ?? "#888";
@@ -133,14 +147,15 @@ export function TrackCanvas({ meta, insets = {} }: { meta: RaceMeta; insets?: In
         ctx.stroke();
       }
 
-      // name tags for selected cars (2nd one below its car, so close cars don't overprint)
+      // name tags for selected cars (2nd one below its car, so close cars
+      // don't overprint), and always one for the favourite driver
       ctx.font = "bold 11px var(--font-titillium), sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       for (const car of drawn) {
         const slot = selected.indexOf(car.code);
-        if (slot < 0) continue;
-        const dy = slot === 1 ? carRadius + 12 : -(carRadius + 12);
+        if (slot < 0 && !isFavouriteDriver(car.code)) continue;
+        const dy = slot === 1 ? carRadius + 14 : -(carRadius + 14);
         ctx.lineWidth = 3;
         ctx.strokeStyle = theme.tagHalo;
         ctx.strokeText(car.code, car.x, car.y + dy);

@@ -16,6 +16,7 @@ describe("shortcuts", () => {
     expect(shortcutFor(key("r"))).toEqual({ kind: "command", command: { type: "restart" } });
     expect(shortcutFor(key("?", { shiftKey: true }))).toEqual({ kind: "legend" });
     expect(shortcutFor(key("Escape"))).toEqual({ kind: "clear-selection" });
+    expect(shortcutFor(key("m"))).toEqual({ kind: "favourite" });
   });
 
   it("ignores unknown keys and browser shortcuts", () => {

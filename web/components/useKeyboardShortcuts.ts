@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { FAVOURITE_DRIVER } from "@/lib/favourites";
 import { useReplayStore } from "@/lib/replayStore";
 import { isTypingTarget, shortcutFor } from "@/lib/shortcuts";
 import { useUiStore } from "@/lib/uiStore";
@@ -23,6 +24,7 @@ export function useKeyboardShortcuts() {
         useReplayStore.getState().send(action.command);
       } else if (action.kind === "legend") ui.toggleLegend();
       else if (action.kind === "insights") ui.toggleInsights();
+      else if (action.kind === "favourite") ui.toggleDriver(FAVOURITE_DRIVER.code);
       else ui.clearSelection();
     };
     window.addEventListener("keydown", onKeyDown);

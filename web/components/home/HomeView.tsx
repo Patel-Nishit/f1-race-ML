@@ -1,7 +1,8 @@
 "use client";
 
-// The home page's live parts: hero (with a real mini replay), the races that
-// are ready to watch, and the season calendar.
+// The home page's live parts: hero (with a real mini replay), the owner's
+// favourite driver and team, the races that are ready to watch, and the
+// season calendar.
 import Link from "next/link";
 import { ArrowRightIcon, WarningCircleIcon } from "@phosphor-icons/react";
 import { MotionConfig, motion, useReducedMotion } from "motion/react";
@@ -12,6 +13,7 @@ import { useReplayStore } from "@/lib/replayStore";
 import type { PreparedRace, RaceMeta } from "@/lib/types";
 import { useUiStore } from "@/lib/uiStore";
 import { TrackCanvas } from "../TrackCanvas";
+import { FavouritesCard } from "./FavouritesCard";
 import { SeasonCalendar } from "./SeasonCalendar";
 import { TrackOutline } from "./TrackOutline";
 
@@ -48,6 +50,7 @@ export function HomeView() {
   return (
     <MotionConfig reducedMotion="user">
       <Hero featured={featured} loading={races === null} error={error} />
+      <FavouritesCard races={races && races.map((r) => r.meta)} />
       <ReadyToWatch races={races} />
       <SeasonCalendar />
     </MotionConfig>

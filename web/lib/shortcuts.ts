@@ -1,5 +1,6 @@
 // Keyboard shortcuts, as a pure function from a key press to an action.
 // Same keys as the desktop app (desktop/ui/legend.py).
+import { FAVOURITE_DRIVER } from "./favourites";
 import type { Command } from "./types";
 
 export const SKIP_SECONDS = 5;
@@ -8,6 +9,7 @@ export type Action =
   | { kind: "command"; command: Command }
   | { kind: "legend" }
   | { kind: "insights" }
+  | { kind: "favourite" }
   | { kind: "clear-selection" };
 
 /**
@@ -56,6 +58,9 @@ export function shortcutFor(e: KeyLike): Action | null {
     case "i":
     case "I":
       return { kind: "insights" };
+    case "m":
+    case "M":
+      return { kind: "favourite" };
     case "Escape":
       return { kind: "clear-selection" };
     default:
@@ -72,6 +77,7 @@ export const SHORTCUTS: [string, string][] = [
   ["R", "Restart race"],
   ["Click a driver", "Select for telemetry (up to 2)"],
   ["Click timeline", "Jump to that moment"],
+  ["M", `Focus ${FAVOURITE_DRIVER.first} (select / deselect)`],
   ["I", "Insights menu"],
   ["L or ?", "Show / hide this legend"],
   ["Esc", "Clear selection"],

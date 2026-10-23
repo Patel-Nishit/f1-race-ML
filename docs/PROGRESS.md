@@ -69,6 +69,14 @@
   *Learned:* design tokens, WCAG contrast, responsive layout, measuring
   rendering cost, CSS pipeline quirks, keeping tests honest during a redesign.
 
+- [x] **Favourites (Max Verstappen, Red Bull Racing).** Spotlight in every
+  replay (yellow ring, star, team-tinted rows, Focus Max / M), a favourites
+  card on the home page with stats from the prepared races, and an optional
+  Red Bull colour theme that persists without a flash. 28 vitest, 44 browser
+  tests. Chapter 12, "Favourites".
+  *Learned:* single source of truth, theme layers with CSS variables,
+  pre-paint scripts, server vs client components, honest statistics.
+
 ## Open questions
 
 - ~~Public live demo or local + recording?~~ Decided: web on Vercel, API on a container host (chapter 14).
